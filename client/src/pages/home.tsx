@@ -324,7 +324,7 @@ export default function Home() {
                         Quick Tip
                       </p>
                       <p className="text-xs text-teal-700 leading-relaxed">
-                        Use Windows+H to dictate your rough thoughts - no need for perfect formatting, punctuation, or structure. Just speak naturally and we'll polish it for you.
+                        Use Windows+H to dictate your rough thoughts - no need to worry about formatting, punctuation, or structure. Just speak naturally, or type your rough notes, and we'll polish it for you.
                       </p>
                     </div>
                   </div>
