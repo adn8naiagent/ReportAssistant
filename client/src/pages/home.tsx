@@ -294,7 +294,7 @@ export default function Home() {
             {/* Guidance Section */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold text-foreground mb-2">
-                {currentConfig.guidanceTitle}
+                {activeTab === "report" ? "Student Report Commentary" : currentConfig.guidanceTitle}
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {currentConfig.guidanceText}
