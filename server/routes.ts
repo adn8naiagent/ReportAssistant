@@ -1,29 +1,27 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { systemPrompts, model } from "../config/prompts";
 
-// System prompts for different assistant types
-const SYSTEM_PROMPTS = {
-  "report": `You are an assistant helping teachers write school reports. Format your response in these sections: Academic Performance, Behavior and Social Skills, Areas for Improvement, Recommendations. Write in a professional, supportive tone suitable for official school reports.`,
-
-  "learning-plan": `You are an assistant helping teachers create individualized learning plans. Format your response in these sections: Current Level Assessment, Learning Goals, Strategies and Interventions, Resources Needed, Success Criteria. Be specific and actionable.`,
-
-  "lesson-plan": `You are an assistant helping teachers create detailed lesson plans. Format your response in these sections: Lesson Objectives, Materials Needed, Introduction/Hook, Main Activities, Assessment Methods, Differentiation Strategies. Be detailed and classroom-ready.`
+// Map frontend type names to config prompt keys
+const TYPE_TO_PROMPT_KEY: Record<string, string> = {
+  "report": "report",
+  "learning-plan": "learningPlan",
+  "lesson-plan": "lessonPlan"
 };
 
 type AssistantType = "report" | "learning-plan" | "lesson-plan";
+
+interface Message {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Generate content using OpenRouter API
   app.post("/api/generate-report", async (req, res) => {
     try {
-      const { studentInfo, type = "report" } = req.body;
-
-      if (!studentInfo || typeof studentInfo !== "string" || !studentInfo.trim()) {
-        return res.status(400).json({
-          error: "Input information is required"
-        });
-      }
+      const { studentInfo, type = "report", conversationHistory = [] } = req.body;
 
       // Validate type parameter
       if (!["report", "learning-plan", "lesson-plan"].includes(type)) {
@@ -40,7 +38,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get the appropriate system prompt
-      const systemPrompt = SYSTEM_PROMPTS[type as AssistantType];
+      const promptKey = TYPE_TO_PROMPT_KEY[type as AssistantType];
+      const systemPrompt = systemPrompts[promptKey as keyof typeof systemPrompts];
+
+      // Build messages array
+      let messages: Message[];
+
+      if (conversationHistory.length > 0) {
+        // Use conversation history for refinement
+        messages = conversationHistory;
+      } else {
+        // Initial generation
+        if (!studentInfo || typeof studentInfo !== "string" || !studentInfo.trim()) {
+          return res.status(400).json({
+            error: "Input information is required"
+          });
+        }
+
+        messages = [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: studentInfo
+          }
+        ];
+      }
 
       // Call OpenRouter API
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -50,17 +75,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "anthropic/claude-3.5-sonnet",
-          messages: [
-            {
-              role: "system",
-              content: systemPrompt
-            },
-            {
-              role: "user",
-              content: studentInfo
-            }
-          ]
+          model: model || "anthropic/claude-3.5-haiku",
+          messages: messages
         })
       });
 
