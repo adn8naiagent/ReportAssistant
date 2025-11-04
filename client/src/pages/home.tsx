@@ -3,68 +3,127 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Eraser, FileText, Zap } from "lucide-react";
+import { Sparkles, Eraser, FileText, Zap, BookOpen, Target, GraduationCap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+type AssistantType = "report" | "learning-plan" | "lesson-plan";
+
+interface TabConfig {
+  id: AssistantType;
+  label: string;
+  icon: React.ReactNode;
+  guidanceTitle: string;
+  guidanceText: string;
+  placeholder: string;
+  buttonText: string;
+  generatingText: string;
+  outputTitle: string;
+}
+
+const TAB_CONFIGS: TabConfig[] = [
+  {
+    id: "report",
+    label: "Report Assistant",
+    icon: <FileText className="w-4 h-4" />,
+    guidanceTitle: "Student Report",
+    guidanceText: "Enter student information including name, grade, subject, and performance details to generate a comprehensive school report.",
+    placeholder: "Enter student information here...\n\nExample:\nName: Sarah Johnson\nGrade: 9\nSubject: English\nPerformance: Excellent writing skills, active class participation, shows creativity in assignments",
+    buttonText: "Generate Report",
+    generatingText: "Generating Report...",
+    outputTitle: "Generated Report"
+  },
+  {
+    id: "learning-plan",
+    label: "Learning Plan Assistant",
+    icon: <Target className="w-4 h-4" />,
+    guidanceTitle: "Individualized Learning Plan",
+    guidanceText: "Provide student details, current performance level, and learning challenges to create a customized learning plan.",
+    placeholder: "Enter student and learning information here...\n\nExample:\nName: Michael Chen\nGrade: 7\nSubject: Mathematics\nCurrent Level: Struggling with fractions and decimals\nNeeds: Additional support with visual learning strategies",
+    buttonText: "Generate Learning Plan",
+    generatingText: "Generating Learning Plan...",
+    outputTitle: "Generated Learning Plan"
+  },
+  {
+    id: "lesson-plan",
+    label: "Lesson Plan Assistant",
+    icon: <GraduationCap className="w-4 h-4" />,
+    guidanceTitle: "Detailed Lesson Plan",
+    guidanceText: "Specify the subject, grade level, topic, and learning objectives to generate a comprehensive lesson plan.",
+    placeholder: "Enter lesson details here...\n\nExample:\nSubject: Science\nGrade: 6\nTopic: Photosynthesis\nDuration: 45 minutes\nLearning Goals: Students will understand the process of photosynthesis and identify key components",
+    buttonText: "Generate Lesson Plan",
+    generatingText: "Generating Lesson Plan...",
+    outputTitle: "Generated Lesson Plan"
+  }
+];
+
 export default function Home() {
-  const [studentInfo, setStudentInfo] = useState("");
-  const [generatedReport, setGeneratedReport] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<AssistantType>("report");
+  const [inputText, setInputText] = useState("");
+  const [generatedOutput, setGeneratedOutput] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  // Placeholder function for future LLM integration
-  const generateReport = async () => {
-    if (!studentInfo.trim()) {
+  const currentConfig = TAB_CONFIGS.find(tab => tab.id === activeTab)!;
+
+  const handleTabChange = (tabId: AssistantType) => {
+    setActiveTab(tabId);
+    setInputText("");
+    setGeneratedOutput(null);
+  };
+
+  const generate = async () => {
+    if (!inputText.trim()) {
       toast({
         variant: "destructive",
         title: "Input Required",
-        description: "Please enter student information to generate a report.",
+        description: "Please enter information to generate content.",
       });
       return;
     }
 
     setIsGenerating(true);
 
-    // TODO: LLM Integration will go here
-    // This is where we'll connect to an LLM API (OpenAI, Anthropic, etc.)
-    // to generate actual school reports based on the student information
-    // For now, this is just a placeholder implementation
-    console.log("🚀 LLM Integration Point:");
-    console.log("Input:", studentInfo);
-    console.log("Next step: Connect to LLM API to generate report");
+    try {
+      const response = await fetch("/api/generate-report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentInfo: inputText,
+          type: activeTab
+        }),
+      });
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to generate content");
+      }
 
-    // Placeholder report for demonstration
-    const placeholderReport = `STUDENT REPORT PREVIEW
-Generated on: ${new Date().toLocaleString()}
+      const data = await response.json();
+      setGeneratedOutput(data.report);
 
-[This is where the AI-generated report will appear]
-
-Student Information Received:
-${studentInfo}
-
----
-Next Steps:
-• Integrate LLM API (OpenAI GPT-4, Anthropic Claude, etc.)
-• Define report structure and formatting
-• Add report templates and customization options
-• Implement error handling and validation
-• Add export/download functionality`;
-
-    setGeneratedReport(placeholderReport);
-    setIsGenerating(false);
-
-    toast({
-      title: "Report Generated",
-      description: "Your professional student report is ready!",
-    });
+      toast({
+        title: "Success",
+        description: `Your ${currentConfig.label.toLowerCase()} is ready.`,
+      });
+    } catch (error) {
+      console.error("Error generating content:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error
+          ? error.message
+          : "An error occurred. Please try again.",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleClear = () => {
-    setStudentInfo("");
-    setGeneratedReport(null);
+    setInputText("");
+    setGeneratedOutput(null);
   };
 
   return (
