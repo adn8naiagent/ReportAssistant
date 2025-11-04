@@ -5,9 +5,9 @@ import { systemPrompts, model } from "../config/prompts";
 
 // Map frontend type names to config prompt keys
 const TYPE_TO_PROMPT_KEY: Record<string, string> = {
-  "report": "report",
+  report: "report",
   "learning-plan": "learningPlan",
-  "lesson-plan": "lessonPlan"
+  "lesson-plan": "lessonPlan",
 };
 
 type AssistantType = "report" | "learning-plan" | "lesson-plan";
@@ -21,25 +21,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate content using OpenRouter API
   app.post("/api/generate-report", async (req, res) => {
     try {
-      const { studentInfo, type = "report", conversationHistory = [] } = req.body;
+      const {
+        studentInfo,
+        type = "report",
+        conversationHistory = [],
+      } = req.body;
 
       // Validate type parameter
       if (!["report", "learning-plan", "lesson-plan"].includes(type)) {
         return res.status(400).json({
-          error: "Invalid type parameter. Must be 'report', 'learning-plan', or 'lesson-plan'"
+          error:
+            "Invalid type parameter. Must be 'report', 'learning-plan', or 'lesson-plan'",
         });
       }
 
       // Check if API key is configured
       if (!process.env.OPENROUTER_API_KEY) {
         return res.status(500).json({
-          error: "OpenRouter API key is not configured"
+          error: "OpenRouter API key is not configured",
         });
       }
 
       // Get the appropriate system prompt
       const promptKey = TYPE_TO_PROMPT_KEY[type as AssistantType];
-      const systemPrompt = systemPrompts[promptKey as keyof typeof systemPrompts];
+      const systemPrompt =
+        systemPrompts[promptKey as keyof typeof systemPrompts];
 
       // Build messages array
       let messages: Message[];
@@ -49,43 +55,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messages = conversationHistory;
       } else {
         // Initial generation
-        if (!studentInfo || typeof studentInfo !== "string" || !studentInfo.trim()) {
+        if (
+          !studentInfo ||
+          typeof studentInfo !== "string" ||
+          !studentInfo.trim()
+        ) {
           return res.status(400).json({
-            error: "Input information is required"
+            error: "Input information is required",
           });
         }
 
         messages = [
           {
             role: "system",
-            content: systemPrompt
+            content: systemPrompt,
           },
           {
             role: "user",
-            content: studentInfo
-          }
+            content: studentInfo,
+          },
         ];
       }
 
       // Call OpenRouter API
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: model || "anthropic/claude-3.5-haiku",
-          messages: messages
-        })
-      });
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: model || "anthropic/claude-3.5-haiku",
+            messages: messages,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error("OpenRouter API error:", errorData);
         return res.status(response.status).json({
           error: "Failed to generate report from AI service",
-          details: errorData
+          details: errorData,
         });
       }
 
@@ -94,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!generatedReport) {
         return res.status(500).json({
-          error: "No report generated from AI service"
+          error: "No report generated from AI service",
         });
       }
 
@@ -103,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error generating report:", error);
       res.status(500).json({
         error: "An error occurred while generating the report",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       });
     }
   });
