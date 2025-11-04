@@ -24,7 +24,7 @@ const TAB_CONFIGS: TabConfig[] = [
   {
     id: "report",
     label: "Report Assistant",
-    icon: <FileText className="w-4 h-4" />,
+    icon: <FileText className="w-5 h-5" />,
     guidanceTitle: "Student Report",
     guidanceText: "Enter student information including name, grade, subject, and performance details to generate a comprehensive school report.",
     placeholder: "Enter student information here...\n\nExample:\nName: Sarah Johnson\nGrade: 9\nSubject: English\nPerformance: Excellent writing skills, active class participation, shows creativity in assignments",
@@ -35,7 +35,7 @@ const TAB_CONFIGS: TabConfig[] = [
   {
     id: "learning-plan",
     label: "Learning Plan Assistant",
-    icon: <Target className="w-4 h-4" />,
+    icon: <Target className="w-5 h-5" />,
     guidanceTitle: "Individualized Learning Plan",
     guidanceText: "Provide student details, current performance level, and learning challenges to create a customized learning plan.",
     placeholder: "Enter student and learning information here...\n\nExample:\nName: Michael Chen\nGrade: 7\nSubject: Mathematics\nCurrent Level: Struggling with fractions and decimals\nNeeds: Additional support with visual learning strategies",
@@ -46,7 +46,7 @@ const TAB_CONFIGS: TabConfig[] = [
   {
     id: "lesson-plan",
     label: "Lesson Plan Assistant",
-    icon: <GraduationCap className="w-4 h-4" />,
+    icon: <GraduationCap className="w-5 h-5" />,
     guidanceTitle: "Detailed Lesson Plan",
     guidanceText: "Specify the subject, grade level, topic, and learning objectives to generate a comprehensive lesson plan.",
     placeholder: "Enter lesson details here...\n\nExample:\nSubject: Science\nGrade: 6\nTopic: Photosynthesis\nDuration: 45 minutes\nLearning Goals: Students will understand the process of photosynthesis and identify key components",
@@ -153,37 +153,61 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Tab Navigation */}
+      <div className="max-w-3xl mx-auto px-6 pt-8 pb-4">
+        <div className="flex justify-center">
+          <div className="inline-flex bg-white rounded-xl shadow-md p-1.5 gap-1">
+            {TAB_CONFIGS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`
+                  flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-sm transition-all
+                  ${activeTab === tab.id
+                    ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }
+                `}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-3xl mx-auto px-6 pb-12">
         <Card className="bg-white shadow-xl rounded-2xl border-0 overflow-hidden">
           <div className="p-10">
-            {/* Subtitle */}
-            <div className="text-center mb-10">
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Create professional student reports powered by AI
-              </p>
-              <p className="text-sm text-muted-foreground/80 mt-2">
-                Enter student details below and let AI generate a comprehensive report
+            {/* Guidance Section */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-foreground mb-2">
+                {currentConfig.guidanceTitle}
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {currentConfig.guidanceText}
               </p>
             </div>
 
             {/* Input Section */}
             <div className="space-y-6">
               <div>
-                <label 
-                  htmlFor="student-info" 
+                <label
+                  htmlFor="input-text"
                   className="block text-sm font-medium text-foreground mb-3"
                 >
-                  Student Information
+                  Input Information
                 </label>
                 <Textarea
-                  id="student-info"
+                  id="input-text"
                   data-testid="input-student-info"
-                  placeholder="Enter student information here...&#10;&#10;Example:&#10;Name: Sarah Johnson&#10;Grade: 9&#10;Subject: English&#10;Performance: Excellent writing skills, active class participation, shows creativity in assignments"
-                  value={studentInfo}
-                  onChange={(e) => setStudentInfo(e.target.value)}
+                  placeholder={currentConfig.placeholder}
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
                   className="min-h-56 text-base resize-none border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl p-5 transition-all"
-                  aria-label="Student information input"
+                  aria-label="Input information"
                 />
               </div>
 
@@ -191,7 +215,7 @@ export default function Home() {
               <div className="flex gap-4 justify-center pt-4">
                 <Button
                   data-testid="button-generate"
-                  onClick={generateReport}
+                  onClick={generate}
                   disabled={isGenerating}
                   size="lg"
                   className="px-8 py-6 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all font-medium"
@@ -199,12 +223,12 @@ export default function Home() {
                   {isGenerating ? (
                     <>
                       <Sparkles className="w-5 h-5 mr-2 animate-spin" />
-                      Generating Report...
+                      {currentConfig.generatingText}
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-5 h-5 mr-2" />
-                      Generate Report
+                      {currentConfig.buttonText}
                     </>
                   )}
                 </Button>
@@ -223,42 +247,46 @@ export default function Home() {
           </div>
         </Card>
 
-        {/* Report Display Area */}
-        {generatedReport && (
+        {/* Output Display Area */}
+        {generatedOutput && (
           <Card className="mt-10 bg-white shadow-lg rounded-2xl border border-border/50 overflow-hidden">
             <div className="p-8">
               <div className="flex items-center gap-3 pb-5 mb-6 border-b border-border">
-                <div className="bg-teal-50 p-2 rounded-lg">
-                  <FileText className="w-5 h-5 text-teal-600" />
+                <div className="bg-teal-50 p-2 rounded-lg text-teal-600">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    {currentConfig.icon}
+                  </div>
                 </div>
                 <h2 className="text-xl font-semibold text-foreground">
-                  Generated Report
+                  {currentConfig.outputTitle}
                 </h2>
               </div>
               <div
                 data-testid="text-report-content"
                 className="whitespace-pre-wrap text-base leading-relaxed text-foreground bg-slate-50 rounded-xl p-6"
               >
-                {generatedReport}
+                {generatedOutput}
               </div>
             </div>
           </Card>
         )}
 
         {/* Empty State Placeholder */}
-        {!generatedReport && (
+        {!generatedOutput && (
           <div className="mt-10">
             <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 border-2 border-dashed border-border rounded-2xl p-12 text-center">
               <div className="flex justify-center mb-4">
                 <div className="bg-white p-4 rounded-full shadow-sm">
-                  <FileText className="w-8 h-8 text-muted-foreground/60" />
+                  <div className="text-muted-foreground/60 w-8 h-8 flex items-center justify-center">
+                    {currentConfig.icon}
+                  </div>
                 </div>
               </div>
               <p className="text-muted-foreground text-base">
-                Your AI-generated report will appear here
+                Your AI-generated content will appear here
               </p>
               <p className="text-sm text-muted-foreground/70 mt-2">
-                Enter student information above and click "Generate Report" to begin
+                Enter information above and click "{currentConfig.buttonText}" to begin
               </p>
             </div>
           </div>

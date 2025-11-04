@@ -2,15 +2,33 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 
+// System prompts for different assistant types
+const SYSTEM_PROMPTS = {
+  "report": `You are an assistant helping teachers write school reports. Format your response in these sections: Academic Performance, Behavior and Social Skills, Areas for Improvement, Recommendations. Write in a professional, supportive tone suitable for official school reports.`,
+
+  "learning-plan": `You are an assistant helping teachers create individualized learning plans. Format your response in these sections: Current Level Assessment, Learning Goals, Strategies and Interventions, Resources Needed, Success Criteria. Be specific and actionable.`,
+
+  "lesson-plan": `You are an assistant helping teachers create detailed lesson plans. Format your response in these sections: Lesson Objectives, Materials Needed, Introduction/Hook, Main Activities, Assessment Methods, Differentiation Strategies. Be detailed and classroom-ready.`
+};
+
+type AssistantType = "report" | "learning-plan" | "lesson-plan";
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Generate school report using OpenRouter API
+  // Generate content using OpenRouter API
   app.post("/api/generate-report", async (req, res) => {
     try {
-      const { studentInfo } = req.body;
+      const { studentInfo, type = "report" } = req.body;
 
       if (!studentInfo || typeof studentInfo !== "string" || !studentInfo.trim()) {
         return res.status(400).json({
-          error: "Student information is required"
+          error: "Input information is required"
+        });
+      }
+
+      // Validate type parameter
+      if (!["report", "learning-plan", "lesson-plan"].includes(type)) {
+        return res.status(400).json({
+          error: "Invalid type parameter. Must be 'report', 'learning-plan', or 'lesson-plan'"
         });
       }
 
@@ -20,6 +38,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           error: "OpenRouter API key is not configured"
         });
       }
+
+      // Get the appropriate system prompt
+      const systemPrompt = SYSTEM_PROMPTS[type as AssistantType];
 
       // Call OpenRouter API
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -33,21 +54,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           messages: [
             {
               role: "system",
-              content: `You are an educational professional creating detailed school reports. Format your reports with the following sections:
-
-1. **Academic Performance**: Provide a comprehensive overview of the student's academic achievements, grades, and subject-specific performance.
-
-2. **Behavior and Social Skills**: Describe the student's behavior in class, interactions with peers and teachers, participation, and social development.
-
-3. **Areas for Improvement**: Identify specific areas where the student needs to focus their efforts and develop further.
-
-4. **Recommendations**: Provide actionable recommendations for the student, parents, and teachers to support the student's continued growth and success.
-
-Keep the tone professional yet encouraging. Be specific and provide constructive feedback.`
+              content: systemPrompt
             },
             {
               role: "user",
-              content: `Please generate a comprehensive school report based on the following student information:\n\n${studentInfo}`
+              content: studentInfo
             }
           ]
         })
