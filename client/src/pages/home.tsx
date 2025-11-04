@@ -538,7 +538,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-muted-foreground text-base">
-                Your AI-generated content will appear here
+                Your polished draft will appear here
               </p>
               <p className="text-sm text-muted-foreground/70 mt-2">
                 Enter information above and click "{currentConfig.buttonText}" to begin
