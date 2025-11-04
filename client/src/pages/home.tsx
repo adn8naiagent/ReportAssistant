@@ -1150,7 +1150,7 @@ This selective approach ensures teachers don't lose approved content when making
                 >
                   <HistoryIcon className="w-4 h-4 mr-2" />
                   <span className="font-medium">
-                    View Generation History ({history.length})
+                    View History ({history.length})
                   </span>
                   {isHistoryPanelOpen ? (
                     <ChevronDown className="w-4 h-4 ml-auto" />
