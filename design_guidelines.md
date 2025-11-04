@@ -1,68 +1,118 @@
 # TeachAssist.ai - Design Guidelines
 
 ## Design Approach
-**Selected Framework:** Material Design (minimal subset) - chosen for its clean forms, excellent input components, and focus on utility-first interfaces. Drawing inspiration from Google's minimalist product pages (Google Search, Google Forms).
+**Selected Framework:** Modern Professional SaaS Design - chosen for its trustworthy, polished appearance that educators will feel confident using. Drawing inspiration from premium education technology platforms with a focus on clarity, professionalism, and warmth.
 
-**Core Principle:** Extreme simplicity with purposeful whitespace. Every element serves a clear function.
+**Core Principle:** Professional simplicity with purposeful design. Create a trustworthy, educator-focused experience that feels modern, capable, and inviting. Every element should inspire confidence while remaining accessible.
+
+## Color Palette
+
+**Primary Colors (Educator-Focused):**
+- Primary: Warm Teal (#0D9488) - Trustworthy, professional, calming
+- Primary Dark: Deep Teal (#0F766E) - For hover states
+- Accent: Warm Coral (#F97316) - Energetic, encouraging
+- Success: Sage Green (#22C55E) - Positive reinforcement
+
+**Neutral Palette:**
+- Background: Soft Warm White (#FAFAF9)
+- Surface: Pure White (#FFFFFF)
+- Text Primary: Deep Slate (#1E293B)
+- Text Secondary: Medium Slate (#64748B)
+- Border: Light Gray (#E2E8F0)
+
+**Gradients:**
+- Background: Subtle warm gradient from cream to light blue-gray
+- Header: Teal to cyan subtle gradient for depth
 
 ## Typography System
 
 **Font Family:** 
-- Primary: Inter or Roboto via Google Fonts CDN
+- Display: Poppins (600-700) - Modern, friendly, professional
+- Body: Inter (400-600) - Clean, highly readable
 - Fallback: system-ui, -apple-system, sans-serif
 
 **Type Scale:**
-- Page Title: text-3xl (30px), font-medium
-- Input Label: text-sm (14px), font-medium, text-gray-700
+- Brand Title: text-2xl (24px), font-semibold (Poppins)
+- Page Title: text-xl (20px), font-medium
+- Body Text: text-base (16px), font-normal, leading-relaxed
 - Button Text: text-base (16px), font-medium
-- Report Output: text-base (16px), font-normal, leading-relaxed
-- Helper Text: text-sm (14px), text-gray-500
+- Helper Text: text-sm (14px), text-muted-foreground
 
 ## Layout System
 
-**Spacing Primitives:** Use Tailwind units of **4, 6, 8, 12, 16** for consistency
-- Component spacing: space-y-6 or space-y-8
-- Padding: p-4, p-6, p-8
-- Margins: mb-4, mb-8, mt-12
+**Spacing Primitives:** Professional spacing for breathing room
+- Component spacing: space-y-8 or space-y-10
+- Section padding: p-6, p-8, p-10
+- Margins: mb-6, mb-10, mt-12
 
 **Container Structure:**
-- Max-width: max-w-2xl (672px) centered container
-- Vertical centering: min-h-screen flex items-center justify-center
-- Outer padding: px-4 for mobile breathing room
+- Max-width: max-w-3xl (768px) for comfortable reading
+- Modern card-based layout with subtle elevation
+- Outer padding: px-6 for generous mobile spacing
 
-**Vertical Rhythm:**
-- Title to input: mb-12
-- Input to buttons: mt-8
-- Buttons to output area: mt-16
-- Internal component spacing: space-y-6
+**Header:**
+- Fixed height with subtle gradient background
+- Centered branding with AI badge
+- Professional shadow for depth
+
+**Main Content:**
+- Card-based design with rounded corners and shadow
+- Generous padding for comfort
+- Clear visual hierarchy
 
 ## Component Library
 
+### Header
+- Gradient background (teal to cyan)
+- White text with AI badge
+- Professional shadow: shadow-md
+- Padding: py-6
+- Brand font: Poppins
+
+### Main Card Container
+- Background: White with subtle shadow
+- Rounded corners: rounded-2xl
+- Padding: p-10
+- Shadow: shadow-lg for elevation
+- Max width: max-w-3xl
+
 ### Input Field
-- Large textarea: min-h-48 (192px)
-- Border: border-2 border-gray-300, rounded-lg
-- Focus state: focus:border-blue-500 focus:ring-2 focus:ring-blue-200
-- Padding: p-4
-- Font size: text-base
-- Placeholder styling: placeholder:text-gray-400
+- Large textarea: min-h-56 (224px) for generous space
+- Border: border-2 with warm teal focus
+- Rounded: rounded-xl for modern feel
+- Focus ring: ring-4 ring-primary/10
+- Padding: p-5
+- Font: text-base with comfortable line height
+- Placeholder: Warm, inviting tone
 
 ### Buttons
-- Container: flex gap-4 justify-center
-- Primary (Generate): bg-blue-600 text-white px-8 py-3 rounded-lg
-- Secondary (Clear): bg-gray-200 text-gray-700 px-8 py-3 rounded-lg
-- Hover states: Primary darkens, Secondary shows subtle gray increase
-- Font weight: font-medium
+- Primary (Generate): 
+  - Gradient from teal to darker teal
+  - White text, rounded-xl
+  - Shadow on hover for depth
+  - Icon with text
+  - px-8 py-4 for substantial feel
+  
+- Secondary (Clear):
+  - Light warm gray background
+  - Teal text
+  - Rounded-xl
+  - Subtle hover state
+  - px-8 py-4
 
-### Report Display Area
-- Container: bg-gray-50 rounded-lg p-8
-- Border: border border-gray-200
-- Minimum height: min-h-64 when empty (shows placeholder)
-- Placeholder text: text-gray-400 italic text-center
-- Content alignment: text-left with proper line-height (leading-relaxed)
+### Report Display
+- Card style with border and shadow
+- Rounded-xl corners
+- Generous padding: p-8
+- Background: Subtle warm tint
+- Icon header with divider
+- Comfortable reading typography
 
-### Page Title (Optional)
-- Positioned above input: text-3xl font-medium mb-2
-- Subtitle below: text-gray-600 text-base mb-12
+### Empty State
+- Dashed border for visual interest
+- Warm gray background
+- Encouraging placeholder text
+- Rounded corners
 
 ## Accessibility
 - All inputs have associated labels (can be visually hidden with sr-only if design requires)
