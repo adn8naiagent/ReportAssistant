@@ -3,7 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GraduationCap, Sparkles, Eraser, FileText, Zap } from "lucide-react";
+import { Sparkles, Eraser, FileText, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
@@ -73,9 +73,11 @@ Next Steps:
       <header className="bg-gradient-to-r from-teal-600 to-cyan-600 shadow-md">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-center gap-3">
-            <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg">
-              <GraduationCap className="w-7 h-7 text-white" />
-            </div>
+            <img 
+              src="/TeachAssist Logo.svg" 
+              alt="TeachAssist.ai Logo" 
+              className="w-10 h-10"
+            />
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-white tracking-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>
                 TeachAssist.ai
