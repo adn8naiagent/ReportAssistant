@@ -60,6 +60,52 @@ export async function getActiveUsersCount(days: number): Promise<number> {
 }
 
 /**
+ * Get count of anonymous sessions in the last N days
+ * (sessions that never converted to users)
+ */
+export async function getAnonymousSessionsCount(days: number): Promise<number> {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+
+  const count = await prisma.session.count({
+    where: {
+      isAnonymous: true,
+      startedAt: {
+        gte: cutoffDate,
+      },
+    },
+  });
+
+  return count;
+}
+
+/**
+ * Get count of unique anonymous IP addresses in the last N days
+ */
+export async function getUniqueAnonymousIPCount(days: number): Promise<number> {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+
+  const result = await prisma.session.findMany({
+    where: {
+      isAnonymous: true,
+      startedAt: {
+        gte: cutoffDate,
+      },
+      ipAddress: {
+        not: null,
+      },
+    },
+    select: {
+      ipAddress: true,
+    },
+    distinct: ['ipAddress'],
+  });
+
+  return result.length;
+}
+
+/**
  * Calculate churn rate (percentage of subscriptions cancelled in last 30 days)
  */
 export async function getChurnRate(): Promise<number> {
@@ -121,15 +167,16 @@ export async function getConversionRate(): Promise<number> {
 
 /**
  * Get average requests per user across all users
+ * Calculates based on actual UsageLog records, not User.monthlyRequestsUsed
  */
 export async function getAverageRequestsPerUser(): Promise<number> {
-  const result = await prisma.user.aggregate({
-    _avg: {
-      monthlyRequestsUsed: true,
-    },
-  });
+  const totalUsers = await prisma.user.count();
 
-  const average = result._avg.monthlyRequestsUsed || 0;
+  if (totalUsers === 0) return 0;
+
+  const totalRequests = await prisma.usageLog.count();
+
+  const average = totalRequests / totalUsers;
   return Math.round(average * 100) / 100; // Round to 2 decimal places
 }
 
@@ -176,7 +223,7 @@ export async function getTotalApiCosts(days: number): Promise<number> {
   });
 
   const total = result._sum.costUsd || 0;
-  return Math.round(parseFloat(total.toString()) * 100) / 100; // Round to 2 decimal places
+  return parseFloat(total.toString()); // Return full precision for accurate cost tracking
 }
 
 /**

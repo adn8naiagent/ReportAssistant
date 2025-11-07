@@ -7,6 +7,9 @@ import {
   useRecentUsage,
   useMetrics,
   useAllUsers,
+  useUsageByIP,
+  useLocationMap,
+  useBrowserStats,
 } from '@/hooks/useAdminData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -27,6 +30,8 @@ const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
   }).format(amount);
 };
 
@@ -102,9 +107,27 @@ function OverviewSection() {
 
       <Card>
         <CardHeader className="pb-2">
+          <CardDescription>Unique Anonymous IPs (30d)</CardDescription>
+          <CardTitle className="text-3xl">
+            {isLoading ? <Skeleton className="h-8 w-20" /> : (data?.uniqueAnonymousIPs30d ?? 0).toLocaleString()}
+          </CardTitle>
+        </CardHeader>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
           <CardDescription>Monthly Recurring Revenue</CardDescription>
           <CardTitle className="text-3xl">
             {isLoading ? <Skeleton className="h-8 w-24" /> : formatCurrency(data?.mrr || 0)}
+          </CardTitle>
+        </CardHeader>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardDescription>Monthly API Costs (30d)</CardDescription>
+          <CardTitle className="text-3xl">
+            {isLoading ? <Skeleton className="h-8 w-24" /> : formatCurrency(data?.monthlyApiCosts || 0)}
           </CardTitle>
         </CardHeader>
       </Card>
@@ -361,6 +384,174 @@ function MetricsSection() {
   );
 }
 
+// Usage by IP section
+function UsageByIPSection() {
+  const { data, isLoading, error } = useUsageByIP();
+
+  if (error) {
+    return (
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Usage by IP Address</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-red-500">Error: {error.message}</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="mb-8">
+      <CardHeader>
+        <CardTitle>Usage by IP Address</CardTitle>
+        <CardDescription>Top 100 IP addresses by request count</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <LoadingSkeleton rows={10} />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>IP Address</TableHead>
+                <TableHead>Country</TableHead>
+                <TableHead>City</TableHead>
+                <TableHead className="text-right">Total Requests</TableHead>
+                <TableHead className="text-right">Total Cost</TableHead>
+                <TableHead>Last Seen</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data?.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell className="font-mono text-sm">{item.ipAddress || '-'}</TableCell>
+                  <TableCell>{item.country || '-'}</TableCell>
+                  <TableCell>{item.city || '-'}</TableCell>
+                  <TableCell className="text-right">{item.totalRequests.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(item.totalCost)}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {formatRelativeTime(item.lastSeen)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Location map section
+function LocationMapSection() {
+  const { data, isLoading, error } = useLocationMap();
+
+  if (error) {
+    return (
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Geographic Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-red-500">Error: {error.message}</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="mb-8">
+      <CardHeader>
+        <CardTitle>Geographic Distribution</CardTitle>
+        <CardDescription>Sessions and unique visitors by location</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <LoadingSkeleton rows={10} />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Country</TableHead>
+                <TableHead>City</TableHead>
+                <TableHead className="text-right">Sessions</TableHead>
+                <TableHead className="text-right">Unique IPs</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data?.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell className="font-medium">{item.country || '-'}</TableCell>
+                  <TableCell>{item.city || '-'}</TableCell>
+                  <TableCell className="text-right">{item.sessionCount.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{item.uniqueIPs.toLocaleString()}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Browser statistics section
+function BrowserStatsSection() {
+  const { data, isLoading, error } = useBrowserStats();
+
+  if (error) {
+    return (
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Browser Statistics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-red-500">Error: {error.message}</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const totalSessions = data?.reduce((sum, item) => sum + item.count, 0) || 0;
+
+  return (
+    <Card className="mb-8">
+      <CardHeader>
+        <CardTitle>Browser Statistics</CardTitle>
+        <CardDescription>Browser usage distribution ({totalSessions.toLocaleString()} total sessions)</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <LoadingSkeleton rows={5} />
+        ) : (
+          <div className="space-y-3">
+            {data?.map((item) => {
+              const percentage = totalSessions > 0 ? (item.count / totalSessions * 100) : 0;
+              return (
+                <div key={item.browser} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{item.browser}</span>
+                    <span className="text-muted-foreground">
+                      {item.count.toLocaleString()} ({percentage.toFixed(1)}%)
+                    </span>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // All users table with search and pagination
 function AllUsersSection() {
   const [search, setSearch] = useState('');
@@ -493,6 +684,15 @@ export default function AdminPage() {
 
         {/* Key Metrics */}
         <MetricsSection />
+
+        {/* Browser Statistics */}
+        <BrowserStatsSection />
+
+        {/* Geographic Distribution */}
+        <LocationMapSection />
+
+        {/* Usage by IP */}
+        <UsageByIPSection />
 
         {/* All Users Table */}
         <AllUsersSection />

@@ -2,6 +2,8 @@ import { Router } from 'express';
 import {
   getTotalUsersCount,
   getActiveUsersCount,
+  getAnonymousSessionsCount,
+  getUniqueAnonymousIPCount,
   getMonthlyRecurringRevenue,
   getNewSignupsCount,
   getRevenueBreakdown,
@@ -13,7 +15,9 @@ import {
   getChurnRate,
   getConversionRate,
   getAllUsers,
+  getTotalApiCosts,
 } from '../utils/adminMetrics';
+import { prisma } from '../db';
 
 const router = Router();
 
@@ -42,11 +46,21 @@ router.get('/overview', async (req, res) => {
     const newSignups7d = await getNewSignupsCount(7);
     console.log(`   ✓ New signups (7d): ${newSignups7d}`);
 
+    console.log('   → Calculating monthly API costs (30d)...');
+    const monthlyApiCosts = await getTotalApiCosts(30);
+    console.log(`   ✓ Monthly API costs: $${monthlyApiCosts}`);
+
+    console.log('   → Counting unique anonymous IPs (30d)...');
+    const uniqueAnonymousIPs30d = await getUniqueAnonymousIPCount(30);
+    console.log(`   ✓ Unique anonymous IPs (30d): ${uniqueAnonymousIPs30d}`);
+
     const response = {
       totalUsers,
       activeUsers30d,
       mrr,
       newSignups7d,
+      monthlyApiCosts,
+      uniqueAnonymousIPs30d,
     };
 
     console.log('✅ Overview data fetched successfully');
@@ -223,6 +237,156 @@ router.get('/users', async (req, res) => {
       error: 'Failed to fetch users',
       details: error instanceof Error ? error.message : 'Unknown error',
       hint: 'Ensure User table exists in database',
+    });
+  }
+});
+
+/**
+ * GET /api/admin/usage-by-ip
+ * Returns usage statistics grouped by IP address
+ */
+router.get('/usage-by-ip', async (req, res) => {
+  console.log('🌐 GET /api/admin/usage-by-ip - Request received');
+  try {
+    const usageByIP = await prisma.$queryRaw<Array<{
+      ipAddress: string | null;
+      totalRequests: bigint;
+      totalCost: number;
+      lastSeen: Date | null;
+      country: string | null;
+      city: string | null;
+    }>>`
+      SELECT
+        s."ipAddress",
+        COUNT(u.id)::bigint as "totalRequests",
+        COALESCE(SUM(u."costUsd"), 0)::float as "totalCost",
+        MAX(s."lastActivityAt") as "lastSeen",
+        s.country,
+        s.city
+      FROM "Session" s
+      LEFT JOIN "UsageLog" u ON s.id = u."sessionId"
+      WHERE s."ipAddress" IS NOT NULL
+      GROUP BY s."ipAddress", s.country, s.city
+      ORDER BY "totalRequests" DESC
+      LIMIT 100
+    `;
+
+    // Convert BigInt to Number for JSON serialization
+    const result = usageByIP.map(row => ({
+      ...row,
+      totalRequests: Number(row.totalRequests),
+    }));
+
+    console.log(`🌐 Found ${result.length} unique IP addresses`);
+    res.json(result);
+  } catch (error) {
+    console.error('❌ Error in /api/admin/usage-by-ip:');
+    console.error('   Details:', error instanceof Error ? error.message : String(error));
+    res.status(500).json({
+      error: 'Failed to fetch usage by IP',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * GET /api/admin/location-map
+ * Returns session counts grouped by country and city
+ */
+router.get('/location-map', async (req, res) => {
+  console.log('🗺️ GET /api/admin/location-map - Request received');
+  try {
+    const locationData = await prisma.$queryRaw<Array<{
+      country: string | null;
+      city: string | null;
+      sessionCount: bigint;
+      uniqueIPs: bigint;
+    }>>`
+      SELECT
+        country,
+        city,
+        COUNT(DISTINCT id)::bigint as "sessionCount",
+        COUNT(DISTINCT "ipAddress")::bigint as "uniqueIPs"
+      FROM "Session"
+      WHERE country IS NOT NULL
+      GROUP BY country, city
+      ORDER BY "sessionCount" DESC
+    `;
+
+    // Convert BigInt to Number for JSON serialization
+    const result = locationData.map(row => ({
+      ...row,
+      sessionCount: Number(row.sessionCount),
+      uniqueIPs: Number(row.uniqueIPs),
+    }));
+
+    console.log(`🗺️ Found ${result.length} unique locations`);
+    res.json(result);
+  } catch (error) {
+    console.error('❌ Error in /api/admin/location-map:');
+    console.error('   Details:', error instanceof Error ? error.message : String(error));
+    res.status(500).json({
+      error: 'Failed to fetch location data',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * GET /api/admin/browser-stats
+ * Returns browser usage statistics parsed from user agents
+ */
+router.get('/browser-stats', async (req, res) => {
+  console.log('🌐 GET /api/admin/browser-stats - Request received');
+  try {
+    const sessions = await prisma.session.findMany({
+      where: {
+        userAgent: {
+          not: null,
+        },
+      },
+      select: {
+        userAgent: true,
+      },
+    });
+
+    // Simple browser detection from user agent strings
+    const browserCounts: Record<string, number> = {};
+
+    sessions.forEach(session => {
+      if (!session.userAgent) return;
+
+      const ua = session.userAgent.toLowerCase();
+      let browser = 'Other';
+
+      if (ua.includes('edg/')) {
+        browser = 'Edge';
+      } else if (ua.includes('chrome/') && !ua.includes('edg/')) {
+        browser = 'Chrome';
+      } else if (ua.includes('safari/') && !ua.includes('chrome/')) {
+        browser = 'Safari';
+      } else if (ua.includes('firefox/')) {
+        browser = 'Firefox';
+      } else if (ua.includes('opera/') || ua.includes('opr/')) {
+        browser = 'Opera';
+      }
+
+      browserCounts[browser] = (browserCounts[browser] || 0) + 1;
+    });
+
+    // Convert to array format sorted by count
+    const result = Object.entries(browserCounts)
+      .map(([browser, count]) => ({ browser, count }))
+      .sort((a, b) => b.count - a.count);
+
+    console.log(`🌐 Found ${result.length} different browsers`);
+    res.json(result);
+  } catch (error) {
+    console.error('❌ Error in /api/admin/browser-stats:');
+    console.error('   Details:', error instanceof Error ? error.message : String(error));
+    res.status(500).json({
+      error: 'Failed to fetch browser statistics',
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
