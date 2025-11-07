@@ -29,6 +29,34 @@ function parseCookies(cookieHeader?: string): Record<string, string> {
 }
 
 /**
+ * Fetch geolocation data from ipapi.co
+ */
+async function getGeolocation(ipAddress: string | null): Promise<{ country: string | null; city: string | null }> {
+  if (!ipAddress || ipAddress === '::1' || ipAddress === '127.0.0.1' || ipAddress.startsWith('192.168.')) {
+    return { country: null, city: null };
+  }
+
+  try {
+    const geoResponse = await fetch(`https://ipapi.co/${ipAddress}/json/`, {
+      headers: { 'User-Agent': 'TeachAssist.ai/1.0' },
+    });
+
+    if (!geoResponse.ok) {
+      return { country: null, city: null };
+    }
+
+    const geoData = await geoResponse.json();
+    return {
+      country: geoData.country_name || null,
+      city: geoData.city || null,
+    };
+  } catch (error) {
+    console.error('Geolocation fetch error:', error);
+    return { country: null, city: null };
+  }
+}
+
+/**
  * Tracking middleware for capturing user sessions and activity
  * Automatically creates sessions for new visitors and updates activity for returning users
  */
@@ -60,6 +88,9 @@ export async function trackingMiddleware(
     let sessionId = cookies[SESSION_COOKIE_NAME];
 
     if (!sessionId) {
+      // Fetch geolocation data
+      const { country, city } = await getGeolocation(ipAddress);
+
       // Create a new session
       sessionId = await createSession({
         ipAddress,
@@ -67,6 +98,8 @@ export async function trackingMiddleware(
         referrer,
         landingPage,
         userId: (req.user as any)?.id || null, // Get userId from auth middleware if available
+        country,
+        city,
       });
 
       // Set session cookie (30 days expiration)

@@ -5,6 +5,8 @@ interface OverviewData {
   activeUsers30d: number;
   mrr: number;
   newSignups7d: number;
+  monthlyApiCosts: number;
+  uniqueAnonymousIPs30d: number;
 }
 
 interface RevenueBreakdownItem {
@@ -64,6 +66,27 @@ interface UsersResponse {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+interface UsageByIP {
+  ipAddress: string | null;
+  totalRequests: number;
+  totalCost: number;
+  lastSeen: Date | null;
+  country: string | null;
+  city: string | null;
+}
+
+interface LocationMapItem {
+  country: string | null;
+  city: string | null;
+  sessionCount: number;
+  uniqueIPs: number;
+}
+
+interface BrowserStat {
+  browser: string;
+  count: number;
 }
 
 const API_BASE = '/api/admin';
@@ -179,4 +202,37 @@ export function useRecentActivity() {
       error: usage.error,
     },
   };
+}
+
+/**
+ * Hook to fetch usage statistics by IP address
+ */
+export function useUsageByIP() {
+  return useQuery<UsageByIP[]>({
+    queryKey: ['admin', 'usage-by-ip'],
+    queryFn: () => fetchJson<UsageByIP[]>('/usage-by-ip'),
+    refetchInterval: 60000, // Refetch every minute
+  });
+}
+
+/**
+ * Hook to fetch location map data
+ */
+export function useLocationMap() {
+  return useQuery<LocationMapItem[]>({
+    queryKey: ['admin', 'location-map'],
+    queryFn: () => fetchJson<LocationMapItem[]>('/location-map'),
+    refetchInterval: 60000,
+  });
+}
+
+/**
+ * Hook to fetch browser statistics
+ */
+export function useBrowserStats() {
+  return useQuery<BrowserStat[]>({
+    queryKey: ['admin', 'browser-stats'],
+    queryFn: () => fetchJson<BrowserStat[]>('/browser-stats'),
+    refetchInterval: 60000,
+  });
 }

@@ -15,7 +15,20 @@
       "Bash(if [ -f ~/.config/secrets/DATABASE_URL ])",
       "Bash(then)",
       "Bash(else)",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(/dev/null)",
+      "Bash(npx prisma db push:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd admin dashboard and migrate to Prisma ORM\n\nMajor Updates:\n- Migrated from Drizzle ORM to Prisma for improved type safety and developer experience\n- Created comprehensive admin dashboard at /admin with 7 API endpoints\n- Fixed Vite catch-all route intercepting API requests\n- Enhanced database connection logging and error diagnostics\n- Updated report system prompt for more natural, balanced commentary\n\nDatabase Changes:\n- Created Prisma schema with 6 models (User, Subscription, SavedResponse, UsageLog, Session, Event)\n- Added helper functions to adminMetrics.ts for dashboard metrics\n- Implemented MRR, churn rate, conversion rate, and usage statistics calculations\n- Created database setup documentation in scripts/setup-database.md\n\nAdmin Dashboard Features:\n- Overview cards: Total Users, Active Users, MRR, New Signups\n- Revenue breakdown by subscription tier\n- Usage statistics with popular assistant types\n- Recent signups and usage logs tables\n- Searchable, paginated user management (20 per page)\n- All endpoints return JSON with proper error handling\n\nFrontend:\n- Created client/src/pages/admin.tsx with full dashboard UI\n- Created client/src/hooks/useAdminData.ts with React Query hooks\n- Added /admin route to App.tsx\n- Auto-refresh every 30-60 seconds\n\nBackend:\n- Created server/routes/admin.ts with 7 REST endpoints\n- Fixed server/vite.ts to exclude /api routes from SPA catch-all\n- Enhanced server/db.ts with detailed connection logging\n- Updated server/routes.ts to register admin routes\n\nConfiguration:\n- Updated config/prompts.ts with simplified report prompt\n- Removed excessive formatting instructions\n- Added explicit shortening request handling\n- More balanced tone guidance\n\nTechnical:\n- Removed Drizzle dependencies (drizzle-orm, drizzle-zod, drizzle-kit)\n- Added Prisma dependencies (@prisma/client, prisma)\n- Deleted drizzle.config.ts and shared/schema.ts\n- Updated .gitignore for Prisma artifacts\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nUpdate report prompt to avoid excessive adjectives\n\nChanges:\n- Added guidance to avoid excessive adjectives like \"delightful\", \"excellent\", \"wonderful\"\n- Emphasize focus on actions and observable behaviors over character judgments\n- Added example: \"instead of 'is a delightful student who shows excellent progress', write 'shows progress in...'\"\n- Updated example style to be more direct and action-focused\n- Removed unnecessary possessive pronouns for cleaner phrasing\n\nThis ensures report commentary remains professional, balanced, and focused on specific student behaviors rather than subjective character assessments.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(cat:*)",
+      "Bash(npx prisma migrate resolve:*)",
+      "Bash(npx prisma migrate:*)"
     ],
     "deny": [],
     "ask": []

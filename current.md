@@ -12,8 +12,13 @@
 
 - **Prisma Migration Complete**: Migrated from Drizzle to Prisma ORM
 - **Database Setup**: All 6 tables created and operational
-- **Admin Dashboard**: Fully functional at `/admin` with 7 API endpoints
-- **Report Prompt Updated**: Improved tone guidance to avoid excessive adjectives and focus on observable behaviors
+- **Admin Dashboard**: Fully functional at `/admin` with 10 API endpoints
+- **Report Prompt Enhanced**: Comprehensive hype language guidelines with extensive prohibited words list
+- **Usage Tracking**: Full analytics logging in /api/generate-report endpoint with token/cost tracking
+- **Geolocation**: ipapi.co integration for session country/city tracking
+- **Advanced Analytics**: IP-based usage tracking, geographic distribution, and browser statistics
+- **Admin Overview Cards**: 6 metric cards including Monthly API Costs and Anonymous Sessions
+- **Currency Precision**: 4 decimal places for cost tracking ($0.0013 instead of $0.00)
 
 ---
 
@@ -34,7 +39,7 @@
 - inputText, generatedContent, conversationHistory (JSON), isFavorite, wordCount
 
 ### UsageLog
-- id, userId → User, sessionId, requestType (generate/refine)
+- id, userId → User (nullable), sessionId, requestType (generate/refine)
 - assistantType, tokensInput, tokensOutput, costUsd, responseTimeMs, model
 - wasSuccessful, errorMessage
 
@@ -60,17 +65,17 @@
 - `server/utils/subscription.ts` - Usage limits (getTierLimits, checkUsageLimit, incrementUsage, resetMonthlyUsage)
 - `server/utils/tracking.ts` - Session/event tracking (createSession, trackEvent, updateSessionActivity, endSession)
 - `server/utils/adminMetrics.ts` - Analytics (MRR, churn, conversion, costs, tokens)
-- `server/middleware/tracking.ts` - Auto session tracking middleware (captures IP, UA, referrer)
+- `server/middleware/tracking.ts` - Auto session tracking with geolocation (captures IP, UA, country, city, referrer)
 
 **Application:**
 - `server/index.ts` - Express server with Prisma $connect() test
-- `server/routes.ts` - Main API routes (with admin routes registered)
-- `server/routes/admin.ts` - Admin API endpoints (7 routes)
+- `server/routes.ts` - Main API routes with full usage tracking in /api/generate-report
+- `server/routes/admin.ts` - Admin API endpoints (10 routes)
 - `server/vite.ts` - Vite middleware (fixed to exclude /api routes)
 - `client/src/pages/home.tsx` - Main React UI
-- `client/src/pages/admin.tsx` - Admin dashboard page
-- `client/src/hooks/useAdminData.ts` - Admin data fetching hooks
-- `config/prompts.ts` - System prompts & model config
+- `client/src/pages/admin.tsx` - Admin dashboard with browser/location analytics
+- `client/src/hooks/useAdminData.ts` - Admin data fetching hooks (10 endpoints)
+- `config/prompts.ts` - Enhanced system prompts with anti-hype language guidelines
 
 **Documentation:**
 - `scripts/COPY-SCHEMA.md` - Deployment guide
@@ -140,8 +145,11 @@ getTotalTokensUsed(days): Promise<{input, output, total}>
 
 ### Three Assistant Types
 1. **Report Commentary** - Natural paragraph reports (150-200 words)
-   - Updated prompt: Avoids excessive adjectives, focuses on observable behaviors
-   - Balanced tone: Mentions both strengths and areas for development
+   - **Enhanced prompt**: Comprehensive anti-hype language guidelines
+   - **Prohibited words**: exceptional, outstanding, excellent, remarkable, impressive, commendable, exemplary, wonderful, delightful, fantastic, brilliant, extraordinary, tremendous, superb, magnificent, phenomenal, stellar, noteworthy, admirable
+   - **Prohibited phrases**: "stand out as", "significant strengths", "particularly noteworthy", "shows great promise"
+   - **Tone**: Matter-of-fact, observational, neutral - not enthusiastic or promotional
+   - Balanced: Mentions both strengths and areas for development
 2. **Learning Plan** - Victorian Govt template (8 areas)
 3. **Lesson Plan** - NSW Dept structure (5 stages)
 
@@ -156,20 +164,41 @@ getTotalTokensUsed(days): Promise<{input, output, total}>
 - localStorage persistence
 
 ### Admin Dashboard (`/admin`)
-- **Overview Cards**: Total Users, Active Users (30d), MRR, New Signups (7d)
+- **Overview Cards**: 6 key metrics
+  - Total Users (signed up users)
+  - Active Users (30d)
+  - Anonymous Sessions (30d) - visitors who haven't signed up
+  - Monthly Recurring Revenue (MRR)
+  - Monthly API Costs (30d) - matches MRR time period
+  - New Signups (7d)
 - **Revenue Breakdown**: Distribution by subscription tier
-- **Usage Statistics**: Total requests, avg per user, popular assistant types
+- **Usage Statistics**: Total requests, avg per user (calculated from UsageLog), popular assistant types
 - **Recent Activity**: Recent signups and usage logs
 - **Key Metrics**: Churn rate, conversion rate
+- **Browser Statistics**: Browser usage distribution with visual progress bars
+- **Geographic Distribution**: Sessions and unique IPs by country/city
+- **Usage by IP**: Top 100 IPs with request counts, costs (4 decimals), and locations
 - **User Management**: Searchable, paginated user list (20 per page)
 - **Auto-refresh**: Updates every 30-60 seconds
+- **Currency Format**: All costs show 4 decimal places for accuracy
 
-### Middleware
+### Middleware & Usage Tracking
 - **Tracking middleware** (`server/middleware/tracking.ts`):
   - Auto-captures sessions (IP, UA, referrer, landing page)
+  - **Geolocation**: Fetches country/city from ipapi.co for new sessions
   - Creates/updates sessions on each request
   - Stores sessionId in cookie: `ta_session_id` (30 days)
   - Attaches sessionId to req object
+
+- **Usage logging** (`server/routes.ts` - `/api/generate-report`):
+  - Tracks every API request with full metrics
+  - **Token tracking**: prompt_tokens and completion_tokens from OpenRouter
+  - **Cost calculation**: $0.25/1M input, $1.25/1M output tokens (Haiku pricing)
+  - **Response time**: Milliseconds from request start to completion
+  - **Request type**: Distinguishes between 'generate' and 'refine'
+  - **Success/failure**: Logs both successful and failed requests with error messages
+  - **Event tracking**: Creates Event records for analytics
+  - **Error resilience**: Logging failures don't break API responses
 
 ---
 
@@ -294,8 +323,90 @@ All endpoints fully functional and returning JSON:
 | `/api/admin/recent-usage` | GET | Last 10 API requests | ✅ |
 | `/api/admin/metrics` | GET | Churn & conversion rates | ✅ |
 | `/api/admin/users` | GET | Paginated user list with search | ✅ |
+| `/api/admin/usage-by-ip` | GET | Top 100 IPs by request count with costs & location | ✅ |
+| `/api/admin/location-map` | GET | Sessions/unique IPs grouped by country & city | ✅ |
+| `/api/admin/browser-stats` | GET | Browser usage distribution from user agents | ✅ |
+
+---
+
+---
+
+## 🐛 Recent Bug Fixes
+
+**UsageLog Not Recording Data (Fixed 2025-11-07):**
+
+**Issue 1: Nullable userId constraint**
+- **Problem**: UsageLog table had required `userId` field but code tried to create logs with `userId: null`
+- **Root Cause**: Schema field was non-nullable but anonymous users don't have userIds
+- **Fix**: Made `userId` field optional in Prisma schema
+- **Changes**:
+  - Updated `prisma/schema.prisma` line 68: `userId String?` (made nullable)
+  - Updated `prisma/schema.prisma` line 69: `user User?` (made relation optional)
+  - Created migration: `20251107080111_make_usage_log_user_id_optional`
+  - Applied schema changes with `npx prisma db push`
+
+**Issue 2: Conditional sessionId check preventing logs**
+- **Problem**: Usage logging code was wrapped in `if (sessionId)` checks, causing logs to be skipped when tracking middleware failed
+- **Root Cause**: Tracking middleware session errors prevented `req.sessionId` from being set, causing all usage logging to be skipped
+- **Fix**: Removed sessionId requirement for usage logging (server/routes.ts:113, 145, 172, 218)
+- **Changes**:
+  - Removed `if (sessionId)` wrappers around all usage log creation code
+  - Changed `sessionId: sessionId` to `sessionId: sessionId || null`
+  - Kept sessionId check only for trackEvent calls (which require sessionId)
+  - Added `.catch()` error handling to prevent logging failures from breaking API responses
+- **Verification**: Tested multiple requests - all now create usage logs successfully
+- **Impact**: Usage logs now capture **ALL** API requests regardless of session/tracking status
+
+---
+
+## 🆕 Recent Updates (2025-11-07)
+
+### Admin Dashboard Enhancements
+
+**1. Currency Precision Upgrade**
+- **Change**: Updated all currency displays to show 4 decimal places
+- **File**: `client/src/pages/admin.tsx:29-36`
+- **Reason**: API costs are very small ($0.001308), need precision to track accurately
+- **Before**: $0.00
+- **After**: $0.0013
+
+**2. Monthly API Costs Card**
+- **Added**: New overview card showing total API costs for last 30 days
+- **Backend**:
+  - Updated `getTotalApiCosts()` in `server/utils/adminMetrics.ts:180` to return full precision (removed rounding)
+  - Added to overview endpoint in `server/routes/admin.ts:48-50`
+  - Added export in `server/routes/admin.ts:17`
+- **Frontend**:
+  - Added `monthlyApiCosts` to `OverviewData` interface in `client/src/hooks/useAdminData.ts:8`
+  - Added card in `client/src/pages/admin.tsx:117-124`
+- **Time Period**: Matches MRR (30 days) for consistent comparison
+
+**3. Anonymous Sessions Card**
+- **Added**: New overview card showing count of anonymous sessions (30d)
+- **Backend**:
+  - Created `getAnonymousSessionsCount()` function in `server/utils/adminMetrics.ts:66-80`
+  - Added to overview endpoint in `server/routes/admin.ts:52-54`
+  - Added export in `server/routes/admin.ts:5`
+- **Frontend**:
+  - Added `anonymousSessions30d` to `OverviewData` interface in `client/src/hooks/useAdminData.ts:9`
+  - Added card in `client/src/pages/admin.tsx:108-115`
+- **Purpose**: Track visitors who haven't signed up yet (isAnonymous: true sessions)
+
+**4. Fixed Average Requests Per User**
+- **Problem**: Was calculating average of `User.monthlyRequestsUsed` field (always 0)
+- **Fix**: Changed to calculate from actual usage: `totalRequests / totalUsers`
+- **File**: `server/utils/adminMetrics.ts:126-135`
+- **Now shows**: Accurate average based on UsageLog records
+
+### Current Overview Cards (6 Total)
+1. Total Users (signed up users)
+2. Active Users (30d)
+3. Anonymous Sessions (30d) - NEW
+4. Monthly Recurring Revenue (MRR)
+5. Monthly API Costs (30d) - NEW
+6. New Signups (7d)
 
 ---
 
 **Last Updated:** 2025-11-07
-**Session Context:** Completed Prisma migration, implemented full admin dashboard with 7 endpoints, updated report prompt for more balanced tone, fixed Vite API routing, database operational
+**Session Context:** Enhanced admin dashboard with 6 overview cards including Monthly API Costs (30d) and Anonymous Sessions (30d). Fixed average requests per user calculation. Updated all currency displays to 4 decimal precision. Fixed critical bugs in UsageLog recording (nullable userId + removed conditional sessionId checks). All usage logs now properly capture anonymous and authenticated user activity.
