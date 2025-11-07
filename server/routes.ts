@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { systemPrompts, model } from "../config/prompts";
+import adminRoutes from "./routes/admin";
 
 // Map frontend type names to config prompt keys
 const TYPE_TO_PROMPT_KEY: Record<string, string> = {
@@ -18,6 +19,10 @@ interface Message {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register admin routes
+  console.log('✓ Registering admin routes at /api/admin');
+  app.use('/api/admin', adminRoutes);
+
   // Generate content using OpenRouter API
   app.post("/api/generate-report", async (req, res) => {
     try {

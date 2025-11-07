@@ -1,0 +1,113 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String          @id @default(uuid())
+  email                String          @unique
+  name                 String
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  lastActiveAt         DateTime        @default(now())
+  currentTier          String          @default("free")
+  monthlyRequestsUsed  Int             @default(0)
+  monthlyRequestsLimit Int             @default(10)
+  lastResetDate        DateTime        @default(now())
+  ipAddress            String?
+  country              String?
+  referralSource       String?
+  subscriptions        Subscription[]
+  savedResponses       SavedResponse[]
+  usageLogs            UsageLog[]
+  sessions             Session[]
+  events               Event[]
+}
+
+model Subscription {
+  id                   String    @id @default(uuid())
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id])
+  stripeSubscriptionId String?   @unique
+  stripeCustomerId     String?
+  status               String
+  tier                 String
+  priceUsd             Decimal
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  cancelledAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model SavedResponse {
+  id                  String   @id @default(uuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id])
+  title               String
+  type                String
+  inputText           String   @db.Text
+  generatedContent    String   @db.Text
+  conversationHistory Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  isFavorite          Boolean  @default(false)
+  wordCount           Int?
+}
+
+model UsageLog {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  sessionId      String?
+  requestType    String
+  assistantType  String
+  tokensInput    Int?
+  tokensOutput   Int?
+  costUsd        Decimal?
+  responseTimeMs Int?
+  model          String?
+  wasSuccessful  Boolean
+  errorMessage   String?  @db.Text
+  createdAt      DateTime @default(now())
+}
+
+model Session {
+  id              String    @id @default(uuid())
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id])
+  ipAddress       String?
+  userAgent       String?   @db.Text
+  country         String?
+  city            String?
+  referrer        String?   @db.Text
+  landingPage     String?
+  isAnonymous     Boolean   @default(true)
+  startedAt       DateTime  @default(now())
+  lastActivityAt  DateTime  @default(now())
+  endedAt         DateTime?
+  durationSeconds Int?
+  events          Event[]
+}
+
+model Event {
+  id            String   @id @default(uuid())
+  sessionId     String
+  session       Session  @relation(fields: [sessionId], references: [id])
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  eventType     String
+  eventCategory String
+  eventLabel    String?
+  eventValue    Int?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+}

@@ -1,6 +1,4 @@
-import { eq } from 'drizzle-orm';
-import { db } from '../db';
-import { users } from '../../shared/schema';
+import { prisma } from '../db';
 
 // Tier limits configuration
 const TIER_LIMITS = {
@@ -31,8 +29,8 @@ export function getTierLimits(tier: string): number {
  * Automatically resets quota if 30 days have passed
  */
 export async function checkUsageLimit(userId: string): Promise<UsageLimitResult> {
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
   });
 
   if (!user) {
@@ -65,26 +63,26 @@ export async function checkUsageLimit(userId: string): Promise<UsageLimitResult>
  * Increment user's monthly usage counter
  */
 export async function incrementUsage(userId: string): Promise<void> {
-  await db
-    .update(users)
-    .set({
-      monthlyRequestsUsed: db.raw`monthly_requests_used + 1`,
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      monthlyRequestsUsed: { increment: 1 },
       lastActiveAt: new Date(),
       updatedAt: new Date(),
-    })
-    .where(eq(users.id, userId));
+    },
+  });
 }
 
 /**
  * Reset user's monthly usage counter and update reset date
  */
 export async function resetMonthlyUsage(userId: string): Promise<void> {
-  await db
-    .update(users)
-    .set({
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
       monthlyRequestsUsed: 0,
       lastResetDate: new Date(),
       updatedAt: new Date(),
-    })
-    .where(eq(users.id, userId));
+    },
+  });
 }

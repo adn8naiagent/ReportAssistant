@@ -1,6 +1,4 @@
-import { eq } from 'drizzle-orm';
-import { db } from '../db';
-import { sessions, events } from '../../shared/schema';
+import { prisma } from '../db';
 
 export interface CreateSessionData {
   ipAddress?: string | null;
@@ -26,9 +24,8 @@ export interface TrackEventData {
  * Create a new session and return the session ID
  */
 export async function createSession(data: CreateSessionData): Promise<string> {
-  const [session] = await db
-    .insert(sessions)
-    .values({
+  const session = await prisma.session.create({
+    data: {
       userId: data.userId || null,
       ipAddress: data.ipAddress || null,
       userAgent: data.userAgent || null,
@@ -39,8 +36,8 @@ export async function createSession(data: CreateSessionData): Promise<string> {
       isAnonymous: !data.userId,
       startedAt: new Date(),
       lastActivityAt: new Date(),
-    })
-    .returning({ id: sessions.id });
+    },
+  });
 
   return session.id;
 }
@@ -49,15 +46,17 @@ export async function createSession(data: CreateSessionData): Promise<string> {
  * Track a user event
  */
 export async function trackEvent(data: TrackEventData): Promise<void> {
-  await db.insert(events).values({
-    sessionId: data.sessionId,
-    userId: data.userId || null,
-    eventType: data.eventType,
-    eventCategory: data.eventCategory,
-    eventLabel: data.eventLabel || null,
-    eventValue: data.eventValue || null,
-    metadata: data.metadata || null,
-    createdAt: new Date(),
+  await prisma.event.create({
+    data: {
+      sessionId: data.sessionId,
+      userId: data.userId || null,
+      eventType: data.eventType,
+      eventCategory: data.eventCategory,
+      eventLabel: data.eventLabel || null,
+      eventValue: data.eventValue || null,
+      metadata: data.metadata || null,
+      createdAt: new Date(),
+    },
   });
 }
 
@@ -65,20 +64,20 @@ export async function trackEvent(data: TrackEventData): Promise<void> {
  * Update session's last activity timestamp
  */
 export async function updateSessionActivity(sessionId: string): Promise<void> {
-  await db
-    .update(sessions)
-    .set({
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: {
       lastActivityAt: new Date(),
-    })
-    .where(eq(sessions.id, sessionId));
+    },
+  });
 }
 
 /**
  * End a session by setting endedAt and calculating duration
  */
 export async function endSession(sessionId: string): Promise<void> {
-  const session = await db.query.sessions.findFirst({
-    where: eq(sessions.id, sessionId),
+  const session = await prisma.session.findUnique({
+    where: { id: sessionId },
   });
 
   if (!session) {
@@ -90,11 +89,11 @@ export async function endSession(sessionId: string): Promise<void> {
     (endedAt.getTime() - new Date(session.startedAt).getTime()) / 1000
   );
 
-  await db
-    .update(sessions)
-    .set({
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: {
       endedAt,
       durationSeconds,
-    })
-    .where(eq(sessions.id, sessionId));
+    },
+  });
 }

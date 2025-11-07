@@ -1,22 +1,20 @@
-import { sql, eq, and, gte } from 'drizzle-orm';
-import { db } from '../db';
-import { users, subscriptions, usageLogs, sessions, events } from '../../shared/schema';
+import { prisma } from '../db';
 
 /**
  * Calculate Monthly Recurring Revenue (MRR)
  * Sum of all active subscriptions normalized to monthly revenue
  */
 export async function getMonthlyRecurringRevenue(): Promise<number> {
-  const activeSubscriptions = await db
-    .select({
-      priceUsd: subscriptions.priceUsd,
-      tier: subscriptions.tier,
-    })
-    .from(subscriptions)
-    .where(eq(subscriptions.status, 'active'));
+  const activeSubscriptions = await prisma.subscription.findMany({
+    where: { status: 'active' },
+    select: {
+      priceUsd: true,
+      tier: true,
+    },
+  });
 
   const mrr = activeSubscriptions.reduce((total, sub) => {
-    const price = parseFloat(sub.priceUsd);
+    const price = parseFloat(sub.priceUsd.toString());
     // Yearly subscriptions contribute 1/12 of their annual price to MRR
     const monthlyValue = sub.tier === 'yearly' ? price / 12 : price;
     return total + monthlyValue;
@@ -32,12 +30,15 @@ export async function getNewSignupsCount(days: number): Promise<number> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
 
-  const result = await db
-    .select({ count: sql<number>`cast(count(*) as integer)` })
-    .from(users)
-    .where(gte(users.createdAt, cutoffDate));
+  const count = await prisma.user.count({
+    where: {
+      createdAt: {
+        gte: cutoffDate,
+      },
+    },
+  });
 
-  return result[0]?.count || 0;
+  return count;
 }
 
 /**
@@ -47,12 +48,15 @@ export async function getActiveUsersCount(days: number): Promise<number> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
 
-  const result = await db
-    .select({ count: sql<number>`cast(count(*) as integer)` })
-    .from(users)
-    .where(gte(users.lastActiveAt, cutoffDate));
+  const count = await prisma.user.count({
+    where: {
+      lastActiveAt: {
+        gte: cutoffDate,
+      },
+    },
+  });
 
-  return result[0]?.count || 0;
+  return count;
 }
 
 /**
@@ -63,29 +67,24 @@ export async function getChurnRate(): Promise<number> {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   // Count total active subscriptions at the start of the period
-  const totalSubsResult = await db
-    .select({ count: sql<number>`cast(count(*) as integer)` })
-    .from(subscriptions)
-    .where(
-      and(
-        gte(subscriptions.createdAt, thirtyDaysAgo),
-        eq(subscriptions.status, 'active')
-      )
-    );
+  const totalSubs = await prisma.subscription.count({
+    where: {
+      createdAt: {
+        gte: thirtyDaysAgo,
+      },
+      status: 'active',
+    },
+  });
 
   // Count subscriptions cancelled in the last 30 days
-  const cancelledSubsResult = await db
-    .select({ count: sql<number>`cast(count(*) as integer)` })
-    .from(subscriptions)
-    .where(
-      and(
-        gte(subscriptions.cancelledAt, thirtyDaysAgo),
-        eq(subscriptions.status, 'cancelled')
-      )
-    );
-
-  const totalSubs = totalSubsResult[0]?.count || 0;
-  const cancelledSubs = cancelledSubsResult[0]?.count || 0;
+  const cancelledSubs = await prisma.subscription.count({
+    where: {
+      cancelledAt: {
+        gte: thirtyDaysAgo,
+      },
+      status: 'cancelled',
+    },
+  });
 
   if (totalSubs === 0) return 0;
 
@@ -98,25 +97,21 @@ export async function getChurnRate(): Promise<number> {
  */
 export async function getConversionRate(): Promise<number> {
   // Count total anonymous sessions (sessions that started as anonymous)
-  const anonymousSessionsResult = await db
-    .select({ count: sql<number>`cast(count(*) as integer)` })
-    .from(sessions)
-    .where(eq(sessions.isAnonymous, true));
+  const totalAnonymousSessions = await prisma.session.count({
+    where: {
+      isAnonymous: true,
+    },
+  });
 
-  // Count signup events
-  const signupEventsResult = await db
-    .select({ count: sql<number>`cast(count(distinct ${sessions.id}) as integer)` })
-    .from(events)
-    .innerJoin(sessions, eq(events.sessionId, sessions.id))
-    .where(
-      and(
-        eq(sessions.isAnonymous, true),
-        eq(events.eventType, 'signupCompleted')
-      )
-    );
-
-  const totalAnonymousSessions = anonymousSessionsResult[0]?.count || 0;
-  const conversions = signupEventsResult[0]?.count || 0;
+  // Count signup events from anonymous sessions
+  const conversions = await prisma.event.count({
+    where: {
+      eventType: 'signupCompleted',
+      session: {
+        isAnonymous: true,
+      },
+    },
+  });
 
   if (totalAnonymousSessions === 0) return 0;
 
@@ -128,14 +123,14 @@ export async function getConversionRate(): Promise<number> {
  * Get average requests per user across all users
  */
 export async function getAverageRequestsPerUser(): Promise<number> {
-  const result = await db
-    .select({
-      avg: sql<number>`cast(avg(${users.monthlyRequestsUsed}) as decimal)`,
-    })
-    .from(users);
+  const result = await prisma.user.aggregate({
+    _avg: {
+      monthlyRequestsUsed: true,
+    },
+  });
 
-  const average = result[0]?.avg || 0;
-  return Math.round(parseFloat(average.toString()) * 100) / 100; // Round to 2 decimal places
+  const average = result._avg.monthlyRequestsUsed || 0;
+  return Math.round(average * 100) / 100; // Round to 2 decimal places
 }
 
 /**
@@ -144,18 +139,21 @@ export async function getAverageRequestsPerUser(): Promise<number> {
 export async function getPopularAssistantTypes(): Promise<
   Array<{ type: string; count: number }>
 > {
-  const result = await db
-    .select({
-      type: usageLogs.assistantType,
-      count: sql<number>`cast(count(*) as integer)`,
-    })
-    .from(usageLogs)
-    .groupBy(usageLogs.assistantType)
-    .orderBy(sql`count(*) desc`);
+  const result = await prisma.usageLog.groupBy({
+    by: ['assistantType'],
+    _count: {
+      assistantType: true,
+    },
+    orderBy: {
+      _count: {
+        assistantType: 'desc',
+      },
+    },
+  });
 
   return result.map((row) => ({
-    type: row.type,
-    count: row.count,
+    type: row.assistantType,
+    count: row._count.assistantType,
   }));
 }
 
@@ -166,14 +164,18 @@ export async function getTotalApiCosts(days: number): Promise<number> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
 
-  const result = await db
-    .select({
-      total: sql<number>`cast(sum(${usageLogs.costUsd}) as decimal)`,
-    })
-    .from(usageLogs)
-    .where(gte(usageLogs.createdAt, cutoffDate));
+  const result = await prisma.usageLog.aggregate({
+    where: {
+      createdAt: {
+        gte: cutoffDate,
+      },
+    },
+    _sum: {
+      costUsd: true,
+    },
+  });
 
-  const total = result[0]?.total || 0;
+  const total = result._sum.costUsd || 0;
   return Math.round(parseFloat(total.toString()) * 100) / 100; // Round to 2 decimal places
 }
 
@@ -186,20 +188,204 @@ export async function getTotalTokensUsed(
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
 
-  const result = await db
-    .select({
-      inputTokens: sql<number>`cast(sum(${usageLogs.tokensInput}) as integer)`,
-      outputTokens: sql<number>`cast(sum(${usageLogs.tokensOutput}) as integer)`,
-    })
-    .from(usageLogs)
-    .where(gte(usageLogs.createdAt, cutoffDate));
+  const result = await prisma.usageLog.aggregate({
+    where: {
+      createdAt: {
+        gte: cutoffDate,
+      },
+    },
+    _sum: {
+      tokensInput: true,
+      tokensOutput: true,
+    },
+  });
 
-  const inputTokens = result[0]?.inputTokens || 0;
-  const outputTokens = result[0]?.outputTokens || 0;
+  const inputTokens = result._sum.tokensInput || 0;
+  const outputTokens = result._sum.tokensOutput || 0;
 
   return {
     input: inputTokens,
     output: outputTokens,
     total: inputTokens + outputTokens,
+  };
+}
+
+/**
+ * Get total number of users
+ */
+export async function getTotalUsersCount(): Promise<number> {
+  return await prisma.user.count();
+}
+
+/**
+ * Get revenue breakdown by tier
+ */
+export async function getRevenueBreakdown(): Promise<
+  Array<{ tier: string; userCount: number; revenue: number; percentage: number }>
+> {
+  const subscriptions = await prisma.subscription.findMany({
+    where: { status: 'active' },
+    select: {
+      tier: true,
+      priceUsd: true,
+    },
+  });
+
+  // Group by tier
+  const tierMap = new Map<string, { count: number; revenue: number }>();
+
+  subscriptions.forEach((sub) => {
+    const tier = sub.tier;
+    const price = parseFloat(sub.priceUsd.toString());
+
+    if (!tierMap.has(tier)) {
+      tierMap.set(tier, { count: 0, revenue: 0 });
+    }
+
+    const tierData = tierMap.get(tier)!;
+    tierData.count++;
+    tierData.revenue += price;
+  });
+
+  // Add free tier users (users without active subscriptions)
+  const freeUsers = await prisma.user.count({
+    where: {
+      currentTier: 'free',
+    },
+  });
+
+  tierMap.set('free', { count: freeUsers, revenue: 0 });
+
+  // Calculate total revenue for percentages
+  let totalRevenue = 0;
+  tierMap.forEach((data) => {
+    totalRevenue += data.revenue;
+  });
+
+  // Convert to array with percentages
+  const breakdown = Array.from(tierMap.entries()).map(([tier, data]) => ({
+    tier,
+    userCount: data.count,
+    revenue: Math.round(data.revenue * 100) / 100,
+    percentage: totalRevenue > 0
+      ? Math.round((data.revenue / totalRevenue) * 10000) / 100
+      : 0,
+  }));
+
+  // Sort by revenue descending
+  return breakdown.sort((a, b) => b.revenue - a.revenue);
+}
+
+/**
+ * Get total API requests in the last N days
+ */
+export async function getTotalRequestsCount(days: number): Promise<number> {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+
+  return await prisma.usageLog.count({
+    where: {
+      createdAt: {
+        gte: cutoffDate,
+      },
+    },
+  });
+}
+
+/**
+ * Get recent signups (last N users)
+ */
+export async function getRecentSignups(limit: number = 10) {
+  return await prisma.user.findMany({
+    take: limit,
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      currentTier: true,
+      createdAt: true,
+      country: true,
+    },
+  });
+}
+
+/**
+ * Get recent usage logs (last N requests)
+ */
+export async function getRecentUsage(limit: number = 10) {
+  return await prisma.usageLog.findMany({
+    take: limit,
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      id: true,
+      assistantType: true,
+      requestType: true,
+      createdAt: true,
+      wasSuccessful: true,
+      user: {
+        select: {
+          email: true,
+          name: true,
+        },
+      },
+    },
+  });
+}
+
+/**
+ * Get paginated users with search and filters
+ */
+export async function getAllUsers(params: {
+  search?: string;
+  page?: number;
+  limit?: number;
+}) {
+  const { search = '', page = 1, limit = 20 } = params;
+  const skip = (page - 1) * limit;
+
+  // Build where clause for search
+  const where = search
+    ? {
+        OR: [
+          { email: { contains: search, mode: 'insensitive' as const } },
+          { name: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }
+    : {};
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        currentTier: true,
+        monthlyRequestsUsed: true,
+        monthlyRequestsLimit: true,
+        lastActiveAt: true,
+        createdAt: true,
+        country: true,
+      },
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return {
+    users,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
   };
 }

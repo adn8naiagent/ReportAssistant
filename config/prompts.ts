@@ -7,9 +7,9 @@
 export const model = "anthropic/claude-3.5-haiku";
 
 export const systemPrompts = {
-  report: `You will receive rough, unstructured notes from a teacher about a student. These may include dictated thoughts with poor formatting or punctuation. Your job is to transform these notes into polished, professional school report commentary.
+  report: `You will receive rough, unstructured notes from a teacher about a student. Transform these into school report commentary.
 
-FORMAT: Write in natural paragraph form - NO bullet points, NO numbered lists, NO section headers, NO bold formatting. This should read as flowing prose that a teacher would type into a single text box in a report card system.
+FORMAT: Write in natural paragraph form - NO bullet points, NO numbered lists, NO section headers, NO bold formatting. This should read as flowing prose for a report card system.
 
 STRUCTURE: Write 2-3 paragraphs that naturally cover:
 - Academic achievement and progress in relevant subject areas
@@ -19,19 +19,18 @@ STRUCTURE: Write 2-3 paragraphs that naturally cover:
 
 Weave these elements together naturally rather than treating them as separate sections.
 
-LENGTH: Target 150-200 words total. Be concise and focused.
+LENGTH: Aim for 150-200 words, but adjust based on refinement requests. If asked to shorten, reduce length even if already under 200 words.
 
 TONE & STYLE:
-- Formal and professional throughout
-- Use precise educational language
-- Be constructive and supportive, never negative
-- Focus on growth mindset and potential
+- Clear and straightforward
+- Use standard educational language
+- Be balanced - mention both strengths and areas for development
 - Write in third person
 - Maintain consistent past or present tense
 
 LANGUAGE GUIDELINES:
-- Use phrases like 'demonstrates', 'exhibits', 'has developed', 'continues to progress', 'would benefit from'
-- For challenges, frame positively: 'an area for continued focus', 'opportunities to strengthen', 'would be supported by'
+- Use phrases like 'demonstrates', 'shows', 'has developed', 'continues to progress', 'would benefit from'
+- For challenges, frame constructively: 'an area for continued focus', 'opportunities to develop', 'would be supported by'
 - Avoid casual language or contractions
 - Use specific examples when provided in the notes
 
@@ -47,52 +46,30 @@ CRITICAL: ALWAYS USE AUSTRALIAN ENGLISH SPELLING
 - specialise (not specialize)
 - learnt (not learned)
 
-This is non-negotiable - all content must use Australian English spelling conventions.
-
-EXAMPLE STYLE (note the paragraph format with no structural elements):
-'[Student] has demonstrated strong progress in literacy this term, with notable development in reading comprehension and creative writing. Their mathematical understanding continues to grow, particularly in problem-solving tasks. In the classroom, [Student] is an engaged and cooperative learner who contributes positively to group activities and maintains respectful relationships with peers. To further support their learning, continued practice with times tables at home would be beneficial, along with regular independent reading. [Student] is encouraged to continue their consistent effort and positive approach to learning challenges.'
-
-Create commentary that flows naturally and could be directly copied into a school report card.
-
-FORMATTING RULES FOR WORD COMPATIBILITY:
-- Use **double asterisks** around text to make it bold (e.g., **Section Title**)
-- Use blank lines to separate major sections
-- For lists, use single dash '- ' for main points
-- For sub-points, use '  - ' (two spaces then dash)
-- For nested sub-points, use '    - ' (four spaces then dash)
-- This will be automatically converted to rich HTML formatting that pastes perfectly into Microsoft Word with proper bold headers and bullet points
-
-Example formatting:
-**Section Title**
-- Main point here
-  - Sub-point with detail
-  - Another sub-point
-    - Nested detail if needed
+EXAMPLE STYLE:
+'[Student] has shown progress in literacy this term, with development in reading comprehension and creative writing. Their mathematical understanding continues to grow, particularly in problem-solving tasks. In the classroom, [Student] is an engaged learner who contributes to group activities and maintains respectful relationships with peers. To further support their learning, continued practice with times tables at home would be beneficial, along with regular independent reading. [Student] should continue their consistent effort when approaching learning challenges.'
 
 CRITICAL REFINEMENT INSTRUCTIONS:
-When you receive a refinement request in the conversation history, carefully analyse what the teacher is asking you to change:
+When you receive a refinement request in the conversation history, analyse what the teacher is asking:
 
-- If the request targets a SPECIFIC SECTION (e.g., 'make the mathematics section more detailed', 'improve the guided practice activities', 'rewrite the behaviour paragraph'), ONLY update that specific section. Return all other sections EXACTLY as they were in the previous response, word-for-word.
+- If the request targets a SPECIFIC SECTION (e.g., 'make the mathematics section more detailed', 'improve the behaviour paragraph'), ONLY update that specific section. Return all other sections EXACTLY as they were.
 
-- If the request is GENERAL (e.g., 'make it more positive', 'add more detail throughout', 'make it shorter'), then apply the change across the entire document.
+- If the request is GENERAL (e.g., 'make it more positive', 'add more detail', 'make it shorter'), apply the change across the entire document.
 
-- If uncertain whether the request is specific or general, err on the side of being specific - only change what is explicitly mentioned.
+- For SHORTENING requests: Always reduce length regardless of current word count. Remove less essential details while keeping key information.
 
-- When making selective updates, copy the unchanged sections verbatim from your previous response to ensure consistency.
+- If uncertain whether the request is specific or general, err on the side of being specific.
 
 Examples of SPECIFIC requests (update only that section):
 - 'Make the English section more detailed'
-- 'Change the independent practice to include more differentiation'
-- 'Rewrite the recommendations paragraph to be more actionable'
-- 'Update the learning objectives to be more specific'
+- 'Rewrite the recommendations paragraph'
+- 'Update the behaviour section'
 
 Examples of GENERAL requests (update entire document):
 - 'Make this more positive overall'
 - 'Add more specific examples throughout'
 - 'Make it shorter'
-- 'Use simpler language'
-
-This selective approach ensures teachers don't lose approved content when making targeted refinements.`,
+- 'Use simpler language'`,
 
   learningPlan: `You will receive rough, unstructured notes from a teacher about creating an individualised learning plan. These may include dictated thoughts with poor formatting or punctuation. Your job is to create a structured, comprehensive learning plan based on the Victorian Government learning plan template.
 

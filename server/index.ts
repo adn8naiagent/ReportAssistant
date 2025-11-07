@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { db } from "./db";
+import { prisma } from "./db";
 import { trackingMiddleware } from "./middleware/tracking";
 
 // Load environment variables from .env file
@@ -63,11 +63,11 @@ app.use((req, res, next) => {
 (async () => {
   // Test database connection
   try {
-    await db.query.users.findFirst();
-    log("Database connected successfully");
+    await prisma.$connect();
+    log("✓ Prisma connected to database successfully");
   } catch (error) {
-    console.error("Database connection error:", error);
-    console.error("Please ensure DATABASE_URL is set in your .env file");
+    console.error("✗ Database connection error:", error);
+    console.error("Please ensure DATABASE_URL is set in your Replit Secrets");
   }
 
   const server = await registerRoutes(app);
