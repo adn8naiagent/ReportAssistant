@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { db } from "./db";
+import { trackingMiddleware } from "./middleware/tracking";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -24,6 +26,9 @@ app.use(
   })
 );
 app.use(express.urlencoded({ extended: false }));
+
+// Add tracking middleware to capture sessions and events
+app.use(trackingMiddleware);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -56,6 +61,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Test database connection
+  try {
+    await db.query.users.findFirst();
+    log("Database connected successfully");
+  } catch (error) {
+    console.error("Database connection error:", error);
+    console.error("Please ensure DATABASE_URL is set in your .env file");
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

@@ -8,7 +8,14 @@
       "Bash(npm audit:*)",
       "Bash(npx prettier:*)",
       "Bash(timeout 5 node:*)",
-      "Bash(node generate-favicons.mjs:*)"
+      "Bash(node generate-favicons.mjs:*)",
+      "Bash(npm run db:push:*)",
+      "Bash(node -e:*)",
+      "Bash(npx tsx:*)",
+      "Bash(if [ -f ~/.config/secrets/DATABASE_URL ])",
+      "Bash(then)",
+      "Bash(else)",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []
