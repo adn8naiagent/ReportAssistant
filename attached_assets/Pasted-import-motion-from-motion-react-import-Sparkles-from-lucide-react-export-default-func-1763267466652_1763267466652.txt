@@ -1,0 +1,53 @@
+import { motion } from 'motion/react';
+import { Sparkles } from 'lucide-react';
+
+export default function TransformationAnimationDemo() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-emerald-50 flex items-center justify-center p-8">
+      <div className="max-w-2xl w-full">
+        <h1 className="text-center mb-8 text-teal-900 text-3xl">
+          Transformation Animation
+        </h1>
+
+        {/* Animation Container */}
+        <div className="relative min-h-[400px] bg-gray-50 rounded-lg p-6 border-2 border-gray-200">
+          {/* Background Content (simulating the input text area) */}
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-2 h-2 bg-gray-400 rounded-full" />
+            <span className="text-xs text-gray-500 uppercase tracking-wide">Spoken Input</span>
+          </div>
+          <div className="text-gray-700 leading-relaxed">
+            <p>Sample text that would be displayed here before transformation...</p>
+          </div>
+
+          {/* Transformation Animation Overlay */}
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg"
+          >
+            <div className="text-center">
+              {/* Rotating Sparkles Icon */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              >
+                <Sparkles className="w-12 h-12 text-teal-600 mx-auto" />
+              </motion.div>
+              
+              {/* Transformation Text */}
+              <p className="mt-4 text-teal-700">Transforming into polished draft...</p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Controls for Testing */}
+        <div className="mt-8 text-center">
+          <p className="text-gray-600 text-sm">
+            This animation plays during the transformation phase between input and output
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
