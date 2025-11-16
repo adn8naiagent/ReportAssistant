@@ -2,12 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { AppHeader } from "@/components/AppHeader";
 import {
   Sparkles,
   FileText,
-  Zap,
   Target,
   GraduationCap,
   RefreshCw,
@@ -1092,61 +1091,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/40">
-      {/* Professional Header */}
-      <header className="bg-gradient-to-r from-teal-600 to-cyan-600 shadow-md">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-center gap-3">
-            <img
-              src="/favicon.svg"
-              alt="TeachAssist.ai Logo"
-              className="w-20 h-20 brightness-0 invert"
-            />
-            <div className="flex items-center gap-3">
-              <h1
-                className="text-2xl font-bold text-white tracking-tight"
-                style={{ fontFamily: "Poppins, sans-serif" }}
-              >
-                TeachAssist.ai
-              </h1>
-              <Badge
-                variant="secondary"
-                className="bg-white/20 text-white border-white/30 hover:bg-white/25 text-xs font-medium"
-              >
-                <Zap className="w-3 h-3 mr-1" />
-                AI-Powered
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Tab Navigation */}
-      <div className="max-w-3xl mx-auto px-6 pt-8 pb-4">
-        <div className="flex justify-center">
-          <div className="inline-flex bg-white rounded-xl shadow-md p-1.5 gap-1">
-            {TAB_CONFIGS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`
-                  flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-sm transition-all relative
-                  ${
-                    activeTab === tab.id
-                      ? "bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-md"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  }
-                `}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* App Header with Navigation */}
+      <AppHeader
+        activeAssistant={activeTab}
+        onAssistantChange={handleTabChange}
+      />
 
       {/* Main Content */}
-      <main className="max-w-3xl mx-auto px-6 pb-12">
+      <main className="max-w-3xl mx-auto px-6 py-8 pb-12">
         <Card className="bg-white shadow-xl rounded-2xl border-0 overflow-hidden">
           <div className="p-10">
             {/* Guidance Section */}
