@@ -1,0 +1,138 @@
+import { AppHeader } from './components/AppHeader';
+import { useState } from 'react';
+
+type AssistantType = 'report' | 'learning-plan' | 'lesson-plan' | 'assessment';
+
+export default function AppHeaderDemo() {
+  const [activeAssistant, setActiveAssistant] = useState<AssistantType>('report');
+
+  const getAssistantContent = () => {
+    switch (activeAssistant) {
+      case 'report':
+        return {
+          title: 'Report Assistant',
+          description: 'Transform your spoken notes into polished student reports',
+          placeholder: 'Start speaking about your student...'
+        };
+      case 'learning-plan':
+        return {
+          title: 'Learning Plan Assistant',
+          description: 'Create comprehensive Individual Learning Plans from your observations',
+          placeholder: 'Describe the student\'s learning needs...'
+        };
+      case 'lesson-plan':
+        return {
+          title: 'Lesson Plan Assistant',
+          description: 'Generate structured lesson plans from your teaching ideas',
+          placeholder: 'Share your lesson plan ideas...'
+        };
+      case 'assessment':
+        return {
+          title: 'Assessment Assistant',
+          description: 'Design assessments and rubrics for your students',
+          placeholder: 'Describe the assessment you need...'
+        };
+    }
+  };
+
+  const content = getAssistantContent();
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <AppHeader 
+        activeAssistant={activeAssistant}
+        onAssistantChange={setActiveAssistant}
+      />
+      
+      {/* Main Content Area */}
+      <div className="container mx-auto px-6 py-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-teal-900 text-3xl mb-2">{content.title}</h1>
+            <p className="text-gray-600 text-lg">{content.description}</p>
+          </div>
+
+          {/* Demo Content Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                <svg 
+                  className="w-8 h-8 text-teal-600" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" 
+                  />
+                </svg>
+              </div>
+              <h3 className="text-gray-900 text-xl mb-2">Ready to start?</h3>
+              <p className="text-gray-600 mb-6 max-w-md">
+                {content.placeholder}
+              </p>
+              <button className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors flex items-center gap-2">
+                <svg 
+                  className="w-5 h-5" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" 
+                  />
+                </svg>
+                Start Recording
+              </button>
+            </div>
+          </div>
+
+          {/* Feature Info */}
+          <div className="mt-8 grid md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h4 className="text-gray-900 mb-2">Fast & Easy</h4>
+              <p className="text-gray-600 text-sm">
+                Just speak naturally and let AI do the rest
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 className="text-gray-900 mb-2">Professional</h4>
+              <p className="text-gray-600 text-sm">
+                Get polished, error-free documents
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 className="text-gray-900 mb-2">Save Time</h4>
+              <p className="text-gray-600 text-sm">
+                Cut hours from administrative work
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
