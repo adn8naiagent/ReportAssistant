@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'wouter';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Mic, FileText, Sparkles, Clock, GraduationCap, CheckCircle, ClipboardList, Pause, Play, Copy, Check, Eye, EyeOff } from 'lucide-react';
@@ -1311,6 +1312,7 @@ function LearningPlanDemo({ globalPause = false }: { globalPause?: boolean }) {
 export default function CompleteLandingPage() {
   const [globalPause, setGlobalPause] = useState(false);
   const [demosHidden, setDemosHidden] = useState(false);
+  const [, setLocation] = useLocation();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-emerald-50">
@@ -1320,10 +1322,17 @@ export default function CompleteLandingPage() {
           <div className="flex items-center justify-between">
             <img src="/logo-full.svg" alt="TeachAssist.ai" className="h-20" />
             <div className="flex items-center gap-4">
-              <Button variant="ghost" className="text-teal-700 hover:text-teal-800 hover:bg-teal-50">
+              <Button
+                variant="ghost"
+                className="text-teal-700 hover:text-teal-800 hover:bg-teal-50"
+                onClick={() => setLocation('/')}
+              >
                 Sign In
               </Button>
-              <Button className="bg-teal-600 hover:bg-teal-700 text-white">
+              <Button
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+                onClick={() => setLocation('/')}
+              >
                 Get Started
               </Button>
             </div>
@@ -1357,7 +1366,10 @@ export default function CompleteLandingPage() {
               well-structured documents.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg">
+              <Button
+                className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-lg"
+                onClick={() => setLocation('/')}
+              >
                 <Mic className="w-5 h-5 mr-2" />
                 Start Speaking
               </Button>
@@ -1688,7 +1700,10 @@ export default function CompleteLandingPage() {
             <p className="mb-8 text-teal-50 text-lg md:text-xl">
               Join thousands of teachers who are saving time and improving their documentation
             </p>
-            <Button className="bg-white text-teal-700 hover:bg-gray-50 px-8 py-6 text-lg">
+            <Button
+              className="bg-white text-teal-700 hover:bg-gray-50 px-8 py-6 text-lg"
+              onClick={() => setLocation('/')}
+            >
               <Mic className="w-5 h-5 mr-2" />
               Get Started Free
             </Button>
