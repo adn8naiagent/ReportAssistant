@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get the appropriate system prompt
+      // Get the appropriate system prompt (always from config/prompts.ts)
       const promptKey = TYPE_TO_PROMPT_KEY[type as AssistantType];
       const systemPrompt =
         systemPrompts[promptKey as keyof typeof systemPrompts];
@@ -64,8 +64,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let messages: Message[];
 
       if (conversationHistory.length > 0) {
-        // Use conversation history for refinement
-        messages = conversationHistory;
+        // Refinement: prepend system prompt to conversation history
+        messages = [
+          {
+            role: "system",
+            content: systemPrompt,
+          },
+          ...conversationHistory,
+        ];
       } else {
         // Initial generation
         if (

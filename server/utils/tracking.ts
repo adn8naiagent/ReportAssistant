@@ -64,12 +64,17 @@ export async function trackEvent(data: TrackEventData): Promise<void> {
  * Update session's last activity timestamp
  */
 export async function updateSessionActivity(sessionId: string): Promise<void> {
-  await prisma.session.update({
-    where: { id: sessionId },
-    data: {
-      lastActivityAt: new Date(),
-    },
-  });
+  try {
+    await prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        lastActivityAt: new Date(),
+      },
+    });
+  } catch (error) {
+    // Silently fail if session doesn't exist - it may have been deleted
+    console.log(`Session ${sessionId} not found for activity update`);
+  }
 }
 
 /**

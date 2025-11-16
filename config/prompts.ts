@@ -166,33 +166,44 @@ CRITICAL FORMATTING RULES FOR WORD COMPATIBILITY:
 - MAXIMUM 2 levels of bullet indentation - never go deeper
 - Reduce line spacing - use single line breaks between items
 - Structure with bold headers instead of deep nesting
+- IMPORTANT: When a line has sub-bullets under it, DO NOT put a bullet on the parent line
 
 CORRECT formatting example:
 **LEARNING AREAS**
 
 **English**
 - Reading comprehension and fluency development
+Creative and persuasive writing skills
+- Focus on narrative structure
+- Practice descriptive language
+
+**Mathematics**
+- Number sense and operations
+Problem-solving strategies
+- Visual representation methods
+- Real-world application tasks
+
+INCORRECT formatting (parent line has bullet when it has sub-bullets):
 - Creative and persuasive writing skills
   - Focus on narrative structure
   - Practice descriptive language
 
-**Mathematics**
-- Number sense and operations
-- Problem-solving strategies
-  - Visual representation methods
-  - Real-world application tasks
+CORRECT (remove parent bullet when sub-bullets exist):
+Creative and persuasive writing skills
+- Focus on narrative structure
+- Practice descriptive language
 
 INCORRECT formatting (too much nesting):
 - Main point
   - Sub point
     - Sub sub point (TOO DEEP - don't do this)
-      - Sub sub sub point (WAY TOO DEEP)
 
 Instead, use bold headers to break up sections:
 **Section Header**
 - Point one
-- Point two
-  - Sub-detail for point two
+Another point with details
+- Sub-detail one
+- Sub-detail two
 
 **Next Section Header**
 - Point three
@@ -230,7 +241,7 @@ STRUCTURE your response with these sections:
 
 **LESSON BACKGROUND**
 - Where this lesson fits in the curriculum/teaching programme
-- Year level/stage
+- grade level/stage - critical you correctly interpret this from input
 
 **LEARNING OBJECTIVES**
 - What students will know/understand/be able to do by the end

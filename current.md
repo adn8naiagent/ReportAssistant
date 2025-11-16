@@ -1,15 +1,18 @@
 # TeachAssist.ai - Current State
 
-**Last Updated:** 2025-11-07
+**Last Updated:** 2025-11-16
 **Database:** Neon PostgreSQL (Connected ✅)
 **ORM:** Prisma
 **Schema Naming:** camelCase
-**Status:** Operational - Database tables created, Admin dashboard live
+**Status:** Operational - Database tables created, Admin dashboard live, Landing page created
 
 ---
 
 ## ✅ Recent Milestones
 
+- **Landing Page Created**: Marketing landing page at `/landing` with animated demos (PENDING REVIEW)
+- **Learning Plan Prompt Updated**: Added instructional sequencing with 4-6 sequential phases
+- **Prompt Management Fixed**: Removed duplicate client-side prompts, single source of truth in config/prompts.ts
 - **Prisma Migration Complete**: Migrated from Drizzle to Prisma ORM
 - **Database Setup**: All 6 tables created and operational
 - **Admin Dashboard**: Fully functional at `/admin` with 10 API endpoints
@@ -72,10 +75,16 @@
 - `server/routes.ts` - Main API routes with full usage tracking in /api/generate-report
 - `server/routes/admin.ts` - Admin API endpoints (10 routes)
 - `server/vite.ts` - Vite middleware (fixed to exclude /api routes)
-- `client/src/pages/home.tsx` - Main React UI
+- `client/src/pages/home.tsx` - Main React UI (assistants interface)
+- `client/src/pages/landing.tsx` - Marketing landing page (PENDING REVIEW)
 - `client/src/pages/admin.tsx` - Admin dashboard with browser/location analytics
 - `client/src/hooks/useAdminData.ts` - Admin data fetching hooks (10 endpoints)
-- `config/prompts.ts` - Enhanced system prompts with anti-hype language guidelines
+- `client/src/components/Logo.tsx` - TeachAssist.ai logo component
+- `client/src/components/TransformationDemo.tsx` - Animated report writing demo
+- `client/src/components/LessonPlanDemo.tsx` - Animated lesson plan demo
+- `client/src/components/LearningPlanDemo.tsx` - Animated learning plan demo
+- `config/prompts.ts` - Enhanced system prompts (single source of truth)
+- `config/assessment.ts` - Writing assessment standards and prompts
 
 **Documentation:**
 - `scripts/COPY-SCHEMA.md` - Deployment guide
@@ -143,15 +152,23 @@ getTotalTokensUsed(days): Promise<{input, output, total}>
 
 ## 📦 Application Features
 
-### Three Assistant Types
+### Four Assistant Types
 1. **Report Commentary** - Natural paragraph reports (150-200 words)
    - **Enhanced prompt**: Comprehensive anti-hype language guidelines
    - **Prohibited words**: exceptional, outstanding, excellent, remarkable, impressive, commendable, exemplary, wonderful, delightful, fantastic, brilliant, extraordinary, tremendous, superb, magnificent, phenomenal, stellar, noteworthy, admirable
    - **Prohibited phrases**: "stand out as", "significant strengths", "particularly noteworthy", "shows great promise"
    - **Tone**: Matter-of-fact, observational, neutral - not enthusiastic or promotional
    - Balanced: Mentions both strengths and areas for development
-2. **Learning Plan** - Victorian Govt template (8 areas)
+2. **Learning Plan** - Victorian Govt template with instructional sequencing
+   - **NEW**: Baseline assessment section
+   - **NEW**: 4-6 sequential instructional phases per learning area
+   - **NEW**: Clear transition criteria between phases
+   - **NEW**: Teacher and student actions for each phase
+   - **NEW**: Progress checks and formative assessments
+   - **NEW**: Final assessment criteria
+   - **Formatting**: Parent lines without bullets when sub-bullets exist
 3. **Lesson Plan** - NSW Dept structure (5 stages)
+4. **Writing Assessment** - Australian Curriculum standards analysis
 
 ### UI Features
 - Tab-based navigation (independent state)
@@ -242,7 +259,15 @@ getTotalTokensUsed(days): Promise<{input, output, total}>
 - [x] GET /api/admin/users - Paginated user list ✅
 
 ### Priority 5: Frontend Pages
-- [ ] Landing page with pricing
+- [x] Landing page at `/landing` - CREATED (PENDING REVIEW) ✅
+  - Hero section with animated gradient text
+  - Three live transformation demos (pause/resume control)
+  - Features section with 3 cards
+  - How It Works section (3 steps)
+  - Benefits section with checkmarks
+  - CTA section with gradient card
+  - Footer with links
+- [ ] Add route to App.tsx for `/landing`
 - [ ] Signup/Login forms
 - [ ] Dashboard (usage stats, saved responses)
 - [ ] Pricing page with Stripe checkout
@@ -408,5 +433,91 @@ All endpoints fully functional and returning JSON:
 
 ---
 
-**Last Updated:** 2025-11-07
-**Session Context:** Enhanced admin dashboard with 6 overview cards including Monthly API Costs (30d) and Anonymous Sessions (30d). Fixed average requests per user calculation. Updated all currency displays to 4 decimal precision. Fixed critical bugs in UsageLog recording (nullable userId + removed conditional sessionId checks). All usage logs now properly capture anonymous and authenticated user activity.
+## 🎨 Landing Page (2025-11-16) - PENDING REVIEW
+
+**Status:** Created, not yet added to App.tsx routing
+
+**Location:** `client/src/pages/landing.tsx`
+
+**Components Created:**
+- `client/src/components/Logo.tsx` - SVG logo with TeachAssist.ai branding
+- `client/src/components/TransformationDemo.tsx` - Animated report writing transformation
+- `client/src/components/LessonPlanDemo.tsx` - Animated lesson plan generation
+- `client/src/components/LearningPlanDemo.tsx` - Animated learning plan with phases
+
+**Features:**
+- **Hero Section**: Gradient text, AI badge, dual CTAs (Start Speaking, Watch Demo)
+- **Live Demos**: Three animated transformation demos showing input → output
+- **Global Pause Control**: Pause/resume button for all animations
+- **Typing Animation**: Character-by-character reveal with cursor
+- **Features Grid**: 3 cards (Report Writing, Lesson Planning, Save Time)
+- **How It Works**: 3-step process with numbered circles
+- **Benefits**: 5 checkmark items in animated cards
+- **CTA Section**: Gradient card with "Get Started Free" button
+- **Footer**: Logo, copyright, links (Privacy, Terms, Contact)
+
+**Dependencies:**
+- framer-motion (motion/react)
+- lucide-react icons
+- Tailwind CSS with gradients
+
+**Design System:**
+- Primary colors: teal-600, emerald-600
+- Gradients: from-teal-50 via-white to-emerald-50
+- Typography: Bold headlines (4xl-7xl), readable body (lg-xl)
+- Spacing: Generous padding, container mx-auto
+- Animations: Smooth transitions, whileInView effects
+
+**Next Steps:**
+1. Review and refine landing page code
+2. Add route to `client/src/App.tsx`: `<Route path="/landing" component={LandingPage} />`
+3. Test animations and responsiveness
+4. Connect Sign In/Get Started buttons to auth flow
+
+---
+
+## 🔧 Prompt System Updates (2025-11-16)
+
+**Problem Fixed:** Landing page prompt not being used
+
+**Root Cause:** Duplicate system prompts in `client/src/pages/home.tsx` (300+ lines)
+
+**Solution:**
+1. **Removed client-side prompts** (home.tsx:913-1245)
+   - Deleted outdated report, learningPlan, and lessonPlan prompts
+   - Client now only stores user/assistant messages
+   - Reduced bundle size by ~14 kB (335.88 kB → 321.85 kB)
+
+2. **Updated server logic** (server/routes.ts:66-74)
+   - Server now **always** prepends system prompt from `config/prompts.ts`
+   - Works for both initial generation and refinements
+   - Single source of truth for all prompts
+
+3. **Learning Plan Prompt Enhanced** (config/prompts.ts:83-195)
+   - Added **BASELINE ASSESSMENT** section
+   - Added **INSTRUCTIONAL SEQUENCES** with 4-6 sequential phases
+   - Each phase includes:
+     - What teacher will do
+     - What student will do
+     - Resources needed
+     - Progress check
+     - Transition criteria ("When student can consistently...")
+   - Added **FINAL ASSESSMENT CRITERIA** section
+   - Updated formatting rules: Parent lines without bullets when sub-bullets exist
+
+**Files Modified:**
+- `client/src/pages/home.tsx` - Removed 332 lines of duplicate prompts
+- `server/routes.ts` - Always prepend system prompt from config
+- `config/prompts.ts` - Enhanced learning plan prompt, fixed formatting rules
+- `config/assessment.ts` - Fixed syntax error (missing quotes on criteria strings)
+
+**Result:**
+- ✅ All prompts reference `config/prompts.ts` only
+- ✅ Learning plan now generates sequential phases
+- ✅ No more client/server prompt sync issues
+- ✅ Future updates only need one file change
+
+---
+
+**Last Updated:** 2025-11-16
+**Session Context:** Created marketing landing page at `/landing` with three animated transformation demos (PENDING REVIEW). Enhanced learning plan prompt with instructional sequencing (4-6 phases with transition criteria). Fixed critical prompt management issue by removing duplicate client-side prompts - all prompts now managed from single source in config/prompts.ts. Fixed formatting rules to remove parent bullets when sub-bullets exist. Fixed syntax error in assessment.ts. Bundle size reduced by 14 kB.
