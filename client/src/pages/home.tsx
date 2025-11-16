@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -1372,22 +1373,9 @@ export default function Home() {
                     {currentConfig.outputTitle}
                   </h2>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-6">
-                  {isGenerating && !generatedOutput ? (
-                    // Transformation animation
-                    <div className="flex flex-col items-center justify-center py-20">
-                      <div className="relative">
-                        <Sparkles className="w-16 h-16 text-teal-600 animate-spin" />
-                        <div className="absolute inset-0 bg-teal-600/20 rounded-full blur-xl animate-pulse"></div>
-                      </div>
-                      <p className="mt-6 text-teal-700 font-medium text-lg">
-                        {currentConfig.generatingText}
-                      </p>
-                      <p className="mt-2 text-teal-600/70 text-sm">
-                        Transforming your content into a polished draft...
-                      </p>
-                    </div>
-                  ) : (
+                <div className="bg-slate-50 rounded-xl p-6 relative min-h-[400px]">
+                  {/* Previous/Empty Content Background */}
+                  {generatedOutput && (
                     <>
                       <div className="flex justify-end sticky top-4 z-20 mb-2">
                         <Button
@@ -1395,6 +1383,7 @@ export default function Home() {
                           variant="outline"
                           size="sm"
                           className="bg-white shadow-md hover:shadow-lg transition-all"
+                          disabled={isGenerating}
                         >
                           {isCopied ? (
                             <>
@@ -1413,9 +1402,33 @@ export default function Home() {
                         data-testid="text-report-content"
                         id="generated-content"
                         className="text-base text-foreground [&_p]:mb-2 [&_p]:mt-0 [&_p]:[line-height:1.4] [&_strong]:font-semibold [&_strong]:block [&_strong]:mt-3 [&_strong]:mb-1.5 [&_ul]:my-1 [&_ul]:pl-5 [&_ul]:list-disc [&_ol]:my-1 [&_ol]:pl-5 [&_ol]:list-decimal [&_li]:my-0.5 [&_li]:[line-height:1.4] [&_ul_ul]:my-0.5 [&_ul_ul]:pl-5 [&_ul_ul_ul]:hidden [&_br]:my-0.5"
-                        dangerouslySetInnerHTML={{ __html: convertToHTML(generatedOutput || '') }}
+                        dangerouslySetInnerHTML={{ __html: convertToHTML(generatedOutput) }}
                       />
                     </>
+                  )}
+
+                  {/* Transformation Animation Overlay */}
+                  {isGenerating && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl"
+                    >
+                      <div className="pt-12 text-center">
+                        {/* Rotating Sparkles Icon */}
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Sparkles className="w-12 h-12 text-teal-600 mx-auto" />
+                        </motion.div>
+
+                        {/* Transformation Text */}
+                        <p className="mt-4 text-teal-700">
+                          {currentConfig.generatingText}
+                        </p>
+                      </div>
+                    </motion.div>
                   )}
                 </div>
               </div>
