@@ -1461,7 +1461,7 @@ export default function Home() {
               <div className="flex justify-center mb-4">
                 <div className="bg-white p-4 rounded-full shadow-sm">
                   <img
-                    src="/favicon.svg"
+                    src="/logo-icon.svg"
                     alt="TeachAssist.ai"
                     className="w-12 h-12 opacity-40"
                   />

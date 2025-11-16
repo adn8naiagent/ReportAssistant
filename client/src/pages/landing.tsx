@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { Mic, FileText, Sparkles, Clock, GraduationCap, CheckCircle, ClipboardList, Pause, Play, Copy, Check } from 'lucide-react';
+import { Mic, FileText, Sparkles, Clock, GraduationCap, CheckCircle, ClipboardList, Pause, Play, Copy, Check, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 // ============================================================================
@@ -1310,6 +1310,7 @@ function LearningPlanDemo({ globalPause = false }: { globalPause?: boolean }) {
 
 export default function CompleteLandingPage() {
   const [globalPause, setGlobalPause] = useState(false);
+  const [demosHidden, setDemosHidden] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-emerald-50">
@@ -1317,7 +1318,7 @@ export default function CompleteLandingPage() {
       <header className="border-b border-teal-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Logo className="h-10 text-teal-600" />
+            <img src="/logo-full.svg" alt="TeachAssist.ai" className="h-20" />
             <div className="flex items-center gap-4">
               <Button variant="ghost" className="text-teal-700 hover:text-teal-800 hover:bg-teal-50">
                 Sign In
@@ -1384,8 +1385,8 @@ export default function CompleteLandingPage() {
             </p>
           </motion.div>
 
-          {/* Global Pause Button */}
-          <div className="flex justify-center mb-12">
+          {/* Global Pause and Hide Buttons */}
+          <div className="flex justify-center gap-4 mb-12">
             <Button
               onClick={() => setGlobalPause(!globalPause)}
               className={`px-6 py-3 rounded-full shadow-lg ${
@@ -1406,10 +1407,32 @@ export default function CompleteLandingPage() {
                 </>
               )}
             </Button>
+            <Button
+              onClick={() => setDemosHidden(!demosHidden)}
+              className={`px-6 py-3 rounded-full shadow-lg ${
+                demosHidden
+                  ? 'bg-teal-600 hover:bg-teal-700 text-white'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              }`}
+            >
+              {demosHidden ? (
+                <>
+                  <Eye className="w-5 h-5 mr-2" />
+                  Show Demos
+                </>
+              ) : (
+                <>
+                  <EyeOff className="w-5 h-5 mr-2" />
+                  Hide Demos
+                </>
+              )}
+            </Button>
           </div>
 
-          {/* Report Writing Demo */}
-          <motion.div
+          {!demosHidden && (
+            <>
+              {/* Report Writing Demo */}
+              <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -1472,6 +1495,8 @@ export default function CompleteLandingPage() {
               <LearningPlanDemo globalPause={globalPause} />
             </Card>
           </motion.div>
+            </>
+          )}
         </div>
       </section>
 
@@ -1678,7 +1703,7 @@ export default function CompleteLandingPage() {
       <footer className="border-t border-teal-100 bg-white mt-16">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <Logo className="h-8 text-teal-600" />
+            <img src="/logo-full.svg" alt="TeachAssist.ai" className="h-8" />
             <p className="text-sm text-gray-600">
               © 2025 TeachAssistAi. All rights reserved.
             </p>

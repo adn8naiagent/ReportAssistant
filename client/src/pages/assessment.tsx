@@ -173,7 +173,7 @@ export default function AssessmentPage() {
             </Link>
             <div className="flex items-center justify-center gap-3 flex-1">
               <img
-                src="/favicon.svg"
+                src="/logo-icon.svg"
                 alt="TeachAssist.ai Logo"
                 className="w-20 h-20 brightness-0 invert"
               />

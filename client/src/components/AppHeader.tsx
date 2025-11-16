@@ -39,25 +39,17 @@ export function AppHeader({ activeAssistant, onAssistantChange }: AppHeaderProps
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <img
-              src="/favicon.svg"
-              alt="TeachAssist.ai Logo"
-              className="w-10 h-10"
+              src="/logo-full.svg"
+              alt="TeachAssist.ai"
+              className="h-20"
             />
-            <div className="flex items-center gap-3">
-              <h1
-                className="text-2xl font-bold text-gray-900 tracking-tight"
-                style={{ fontFamily: "Poppins, sans-serif" }}
-              >
-                TeachAssist.ai
-              </h1>
-              <Badge
-                variant="secondary"
-                className="bg-teal-100 text-teal-700 border-teal-200 hover:bg-teal-100 text-xs font-medium"
-              >
-                <Zap className="w-3 h-3 mr-1" />
-                AI-Powered
-              </Badge>
-            </div>
+            <Badge
+              variant="secondary"
+              className="bg-teal-100 text-teal-700 border-teal-200 hover:bg-teal-100 text-xs font-medium"
+            >
+              <Zap className="w-3 h-3 mr-1" />
+              AI-Powered
+            </Badge>
           </div>
         </div>
 
