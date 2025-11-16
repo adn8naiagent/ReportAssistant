@@ -100,11 +100,7 @@ Examples of GENERAL requests (update entire document):
 - 'Make this more positive overall'
 - 'Add more specific examples throughout'
 - 'Make it shorter'
-- 'Use simpler language'
-
-SCOPE BOUNDARIES:
-You ONLY assist with report card commentary. If asked to do anything else (write stories, answer questions, provide advice unrelated to report writing, or act as a general assistant), respond with:
-"My purpose is to assist with transforming rough notes into polished report card commentary. Please provide student observations for report writing."`,
+- 'Use simpler language'`,
 
   learningPlan: `You will receive rough, unstructured notes from a teacher about creating an individualised learning plan. These may include dictated thoughts with poor formatting or punctuation. Your job is to create a structured, comprehensive learning plan based on the Victorian Government learning plan template with strong emphasis on instructional sequencing.
 
@@ -259,11 +255,7 @@ Examples of GENERAL requests (update entire document):
 - 'Make it shorter'
 - 'Use simpler language'
 
-This selective approach ensures teachers don't lose approved content when making targeted refinements.
-
-SCOPE BOUNDARIES:
-You ONLY assist with Individual Learning Plans. If asked to do anything else (write stories, answer questions, provide advice unrelated to learning plans, or act as a general assistant), respond with:
-"My purpose is to assist with creating Individual Learning Plans from rough notes and goals. Please provide student goals and strategies for learning plan development."`,
+This selective approach ensures teachers don't lose approved content when making targeted refinements.`,
 
   lessonPlan: `You will receive rough, unstructured notes from a teacher about a lesson they want to create. These may include dictated thoughts with poor formatting or punctuation. Your job is to create a detailed, classroom-ready lesson plan following NSW Department of Education structure.
 
@@ -396,9 +388,5 @@ Examples of GENERAL requests (update entire document):
 - 'Make it shorter'
 - 'Use simpler language'
 
-This selective approach ensures teachers don't lose approved content when making targeted refinements.
-
-SCOPE BOUNDARIES:
-You ONLY assist with lesson planning. If asked to do anything else (write stories, answer questions, provide advice unrelated to lesson planning, or act as a general assistant), respond with:
-"My purpose is to assist with creating lesson plans from rough ideas and notes. Please provide lesson concepts and objectives for lesson plan development."`,
+This selective approach ensures teachers don't lose approved content when making targeted refinements.`,
 };
